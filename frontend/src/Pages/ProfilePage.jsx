@@ -158,6 +158,180 @@ const ProfilePage = () => {
         }
     };
 
+
+
+    const updateBooking = async (updatedBookingData) => {
+        const { _id, checkIn, checkOut, guests, total_price } = updatedBookingData;
+    
+        if (!_id || !checkIn || !checkOut || guests == null || total_price == null) {
+            console.error("All fields (_id, checkIn, checkOut, guests, total_price) are required.");
+            return { error: "All fields are required." };
+        }
+    
+        try {
+            const response = await fetch("http://localhost:3000/update_booking", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ _id, checkIn, checkOut, guests, total_price }),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Failed to update booking:", errorData.message);
+                return { error: errorData.message };
+            }
+    
+            const result = await response.json();
+            console.log("Booking updated successfully:", result.updatedBooking);
+            return result.updatedBooking;
+        } catch (error) {
+            console.error("Error updating booking:", error);
+            return { error: "Failed to update booking due to a network error." };
+        }
+    };
+
+
+
+
+const handleCheckInChange = async (e, listingID) => {
+    const newDate = e.target.value;
+    const today = new Date().toISOString().split('T')[0];
+
+    if (newDate < today) {
+        alert("Check-in date cannot be in the past.");
+        return;
+    }
+
+    const checkOutDate = bookings.find(booking => booking.listingID === listingID)?.checkOut;
+    if (checkOutDate && newDate === checkOutDate) {
+        alert("Check-in date cannot be the same as the check-out date.");
+        return;
+    }
+
+    // Update check-in date in local state
+    setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+            booking.listingID === listingID ? { ...booking, checkIn: newDate } : booking
+        )
+    );
+
+    // Find the updated booking data
+    const updatedBooking = bookings.find(booking => booking.listingID === listingID);
+    const pricePerNight = listingData[listingID]?.Price || 0;
+    const numberGuests = updatedBooking.guests;
+
+    // Calculate the new total price
+    const newTotalPrice = await calculateTotalPrice(newDate, updatedBooking.checkOut, pricePerNight, numberGuests);
+
+    // Send the updated data to the database
+    const updatedBookingData = await updateBooking({
+        ...updatedBooking,
+        checkIn: newDate,
+        total_price: newTotalPrice, // Update the total price in the database
+    });
+
+    if (!updatedBookingData.error) {
+        console.log("Booking updated with new total price", updatedBookingData);
+    } else {
+        alert("Failed to update booking.");
+    }
+};
+
+
+const handleCheckOutChange = async (e, listingID) => {
+    const newDate = e.target.value;
+    const today = new Date().toISOString().split('T')[0];
+
+    if (newDate < today) {
+        alert("Check-out date cannot be in the past.");
+        return;
+    }
+
+    const checkInDate = bookings.find(booking => booking.listingID === listingID)?.checkIn;
+    if (checkInDate && newDate === checkInDate) {
+        alert("Check-out date cannot be the same as the check-in date.");
+        return;
+    }
+
+    // Update check-out date in local state
+    setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+            booking.listingID === listingID ? { ...booking, checkOut: newDate } : booking
+        )
+    );
+
+    // Find the updated booking data
+    const updatedBooking = bookings.find(booking => booking.listingID === listingID);
+    const pricePerNight = listingData[listingID]?.Price || 0;
+    const numberGuests = updatedBooking.guests;
+
+    // Calculate the new total price
+    const newTotalPrice = await calculateTotalPrice(updatedBooking.checkIn, newDate, pricePerNight, numberGuests);
+
+    // Send the updated data to the database
+    const updatedBookingData = await updateBooking({
+        ...updatedBooking,
+        checkOut: newDate,
+        total_price: newTotalPrice, // Update the total price in the database
+    });
+
+    if (!updatedBookingData.error) {
+        console.log("Booking updated with new total price", updatedBookingData);
+    } else {
+        alert("Failed to update booking.");
+    }
+};
+
+const handleGuestChange = async (e, listingID) => {
+    const newGuest = e.target.value;
+
+    if (isNaN(newGuest) || newGuest < 1) {
+        alert("Guests must be a valid number and at least 1.");
+        return;
+    }
+
+    // Update guest count in local state immediately
+    setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+            booking.listingID === listingID ? { ...booking, guests: newGuest } : booking
+        )
+    );
+
+    // Find the updated booking data from local state (after the update)
+    const updatedBooking = {
+        ...bookings.find(booking => booking.listingID === listingID),
+        guests: newGuest
+    };
+
+    // Calculate the new total price with the new guest count
+    const newTotalPrice = await calculateTotalPrice(updatedBooking.checkIn, updatedBooking.checkOut, listingData[listingID]?.Price || 0, newGuest);
+
+    // After calculating total price, update it in the database
+    const updatedBookingData = await updateBooking({
+        ...updatedBooking,
+        total_price: newTotalPrice,
+    });
+
+    if (!updatedBookingData.error) {
+        console.log("Booking updated with new total price", updatedBookingData);
+    } else {
+        alert("Failed to update booking.");
+    }
+};
+
+
+const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGuests) => {
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+    const dateDiff = Math.max(0, (checkOut - checkIn) / (1000 * 60 * 60 * 24)); // Calculate the number of days
+    const newTotalPrice = dateDiff * pricePerNight * numberGuests; 
+    return newTotalPrice;
+
+};
+
+
     const formatDate = (date) => {
         if (!date) return "2024-01-01";
         const d = new Date(date);
