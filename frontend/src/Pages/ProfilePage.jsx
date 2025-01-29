@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-
+import BookingConfirmation from "../components/bookingPay";
 import axios from "axios";
 
 const ProfilePage = () => {
+    const [selectedBookingId, setSelectedBookingId] = useState(null);
     const navigate = useNavigate();
     const storedUser = JSON.parse(sessionStorage.getItem("user"));
-
+const [showPayment, setShowPayment] = useState(false);
     // State for form fields and bookings
     const [email, setEmail] = useState(storedUser?.email || "");
     const [password, setPassword] = useState("*******");
@@ -416,6 +417,7 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                         <div className="flex space-x-4">
                                             <button onClick={handleRestart2} className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Data</button>
                                             <button onClick={() => deleteBooking(booking._id)} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Booking</button>
+                                            <button  onClick={() => {setSelectedBookingId(booking._id);setShowPayment(true);}}  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Pay</button>
                                         </div>
                                     </div>
 
@@ -432,6 +434,7 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                     )}
                 </div>
                 <Footer />
+                {showPayment && <BookingConfirmation onClose={() => setShowPayment(false)} bookingId={selectedBookingId} />}
             </div>
         </>
     );

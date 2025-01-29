@@ -9,7 +9,7 @@ const { User, Listing, Booking } = require('./models.js');
 const jwt = require("jsonwebtoken")
 const secret_key = "secret"
 const app = express();
-
+const stripe = require("stripe")("sk_test_51Qln2YKcAlWM4wFleUUtvmYoV6h1Lc2nqB6fO5IYOOmNsYNPsxhdiZg7EPvviHiViKglA49M9iz07GxiT26iY54O00FnqJb1SB")
 app.use(bodyparser.json());
 app.use(cors({
     origin: 'http://localhost:5173', /*dont forget!!!!!*/
@@ -62,6 +62,48 @@ app.post('/login', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
+
+
+app.post("/create-payment-intent", async (req, res) => {
+    const { amount } = req.body;
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount * 100, // Convert to cents
+            currency: "eur",
+        });
+        res.send({
+            clientSecret: paymentIntent.client_secret,
+        });
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+
+
+
+
+
+app.post("/booking_by_id", async (req, res) => {
+    const { id } = req.body; 
+    try {
+        const findbook = await Booking.findOne({ _id: id }); 
+
+        if (!findbook) {
+            return res.status(404).json({ message: "Booking not found" });
+        }
+
+        res.status(200).json(findbook);
+    } catch (err) {
+        console.error("Error finding booking:", err);
+        res.status(400).json({ message: "Error fetching booking" });
+    }
+});
+
+
+
 
 
 app.put('/update_booking', async (req, res) => {
