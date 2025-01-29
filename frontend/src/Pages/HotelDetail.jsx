@@ -15,6 +15,8 @@ const HotelDetail = () => {
         checkOutDate: "",
         guests: 1,
     });
+const [clicked, setClicked] = useState(false);
+const [bookingBool, setBookingBool] = useState(false);
 
     useEffect(() => {
         // Fetch the hotel details by ID
@@ -70,6 +72,7 @@ const HotelDetail = () => {
 
             if (response.ok) {
                 alert("Booking successful!");
+                setBookingBool(true);
                 navigate("/");
             } else {
                 const errorData = await response.json();
@@ -92,6 +95,16 @@ const HotelDetail = () => {
             </div>
         );
     }
+
+
+
+
+    const handleClick = () => {
+        if (!clicked) {
+          setClicked(true);     
+        }else(setClicked(false));
+      };
+
 
     return (
         <>
@@ -177,12 +190,17 @@ const HotelDetail = () => {
                                             />
                                         </label>
                                         <button
-                                            onClick={handleBooking}
+                                            onClick={() => { handleBooking(); handleClick(); }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
-                                            Confirm Booking (${totalp})
+                                            Confirm Booking 
                                         </button>
                                     </div>
+                                   
+                                      {/*  <div style={{ bookingBool ? display: clicked ? "block" : "none" : console.log("hi")}}>Booking Confirmed!
+
+                                        </div> */}
+                                    
                                 </div>
                             ) : (
                                 <div className="mt-12 bg-neutral-800 p-6 rounded-lg shadow-lg text-center">
