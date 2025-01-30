@@ -9,12 +9,16 @@ const { User, Listing, Booking } = require('./models.js');
 const jwt = require("jsonwebtoken")
 const secret_key = "secret"
 const app = express();
-const stripe = require("stripe")("sk_test_51Qln2YKcAlWM4wFleUUtvmYoV6h1Lc2nqB6fO5IYOOmNsYNPsxhdiZg7EPvviHiViKglA49M9iz07GxiT26iY54O00FnqJb1SB")
+require("dotenv").config();
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
-    origin: 'http://localhost:5173', /*dont forget!!!!!*/
-    credentials: true
-}))
+    origin: "http://localhost:5173",
+    credentials: true,
+
+}));
+
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -64,26 +68,42 @@ app.post('/login', async (req, res) => {
 });
 
 
-
-
 app.post("/create-payment-intent", async (req, res) => {
-    const { amount } = req.body;
     try {
+        console.log("Received request for payment intent:", req.body);
+        const { amount, bookingId } = req.body;
+
+        if (!amount || !bookingId) {
+            return res.status(400).json({ error: "Missing amount or bookingId" });
+        }
+
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount * 100, // Convert to cents
+            amount: Math.round(amount * 100),
             currency: "eur",
+            payment_method_types: ["card"],
         });
-        res.send({
-            clientSecret: paymentIntent.client_secret,
-        });
+
+        console.log("Payment Intent Created:", paymentIntent);
+        res.json({ clientSecret: paymentIntent.client_secret });
     } catch (error) {
-        res.status(500).send({ error: error.message });
+        console.error("Stripe Error:", error);
+        res.status(500).json({ error: "Payment processing error" });
     }
 });
 
 
-
-
+app.post("/confirm-payment", async (req, res) => {
+    try {
+        const { bookingId } = req.body;
+        const booking = await Booking.findById(bookingId);
+        if (!booking) return res.status(404).json({ error: "Booking not found" });
+        booking.payed = true;
+        await booking.save();
+        res.json({ message: "Payment confirmed", booking });
+    } catch (error) {
+        res.status(500).json({ error: "Error updating payment status" });
+    }
+});
 
 
 app.post("/booking_by_id", async (req, res) => {

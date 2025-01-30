@@ -418,6 +418,8 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                             <button onClick={handleRestart2} className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Data</button>
                                             <button onClick={() => deleteBooking(booking._id)} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Booking</button>
                                             <button  onClick={() => {setSelectedBookingId(booking._id);setShowPayment(true);}}  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Pay</button>
+                                            <div> {booking.payed ? "payed" : "bad"} </div>
+
                                         </div>
                                     </div>
 

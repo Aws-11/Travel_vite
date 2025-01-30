@@ -67,6 +67,7 @@ const [bookingBool, setBookingBool] = useState(false);
                     checkOut: bookingDetails.checkOutDate,
                     guests: bookingDetails.guests,
                     total_price: totalp,
+                    payed: false,
                 }),
             });
 
