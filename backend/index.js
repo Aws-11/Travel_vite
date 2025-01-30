@@ -9,12 +9,16 @@ const { User, Listing, Booking } = require('./models.js');
 const jwt = require("jsonwebtoken")
 const secret_key = "secret"
 const app = express();
+require("dotenv").config();
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
-    origin: 'http://localhost:5173', /*dont forget!!!!!*/
-    credentials: true
-}))
+    origin: "http://localhost:5173",
+    credentials: true,
+
+}));
+
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -62,6 +66,64 @@ app.post('/login', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
+app.post("/create-payment-intent", async (req, res) => {
+    try {
+        console.log("Received request for payment intent:", req.body);
+        const { amount, bookingId } = req.body;
+
+        if (!amount || !bookingId) {
+            return res.status(400).json({ error: "Missing amount or bookingId" });
+        }
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100),
+            currency: "eur",
+            payment_method_types: ["card"],
+        });
+
+        console.log("Payment Intent Created:", paymentIntent);
+        res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+        console.error("Stripe Error:", error);
+        res.status(500).json({ error: "Payment processing error" });
+    }
+});
+
+
+app.post("/confirm-payment", async (req, res) => {
+    try {
+        const { bookingId } = req.body;
+        const booking = await Booking.findById(bookingId);
+        if (!booking) return res.status(404).json({ error: "Booking not found" });
+        booking.payed = true;
+        await booking.save();
+        res.json({ message: "Payment confirmed", booking });
+    } catch (error) {
+        res.status(500).json({ error: "Error updating payment status" });
+    }
+});
+
+
+app.post("/booking_by_id", async (req, res) => {
+    const { id } = req.body; 
+    try {
+        const findbook = await Booking.findOne({ _id: id }); 
+
+        if (!findbook) {
+            return res.status(404).json({ message: "Booking not found" });
+        }
+
+        res.status(200).json(findbook);
+    } catch (err) {
+        console.error("Error finding booking:", err);
+        res.status(400).json({ message: "Error fetching booking" });
+    }
+});
+
+
+
 
 
 app.put('/update_booking', async (req, res) => {

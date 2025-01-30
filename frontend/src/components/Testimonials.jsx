@@ -4,7 +4,7 @@ import user2 from "../assets/profile-pictures/user2.jpg";
 import user3 from "../assets/profile-pictures/user3.jpg";
 import user4 from "../assets/profile-pictures/user4.jpg";
 import user5 from "../assets/profile-pictures/user5.jpg";
-import user6 from "../assets/profile-pictures/user6.jpg";
+import user6 from "../assets/profile-pictures/han.jpg";
 
 
 const Testimonials = () => {
@@ -42,9 +42,9 @@ const Testimonials = () => {
             text: "We booked a family-friendly hotel with great facilities for kids. It was exactly as described on the website, and we had a wonderful time!",
         },
         {
-            user: "Emily Davis",
+            user: "Han Solo",
 
-            company: "Solo Traveler",
+            company: "Traveler",
             image: user6,
             text: "I was able to book a cozy, budget-friendly hotel for my solo trip. The booking process was quick and hassle-free, and everything went perfectly.",
         },

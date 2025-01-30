@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
+import BookingConfirmation from "../components/bookingPay";
 const HotelDetail = () => {
     const { id } = useParams(); // Get the hotel _id from the URL
     const navigate = useNavigate();
@@ -15,6 +15,8 @@ const HotelDetail = () => {
         checkOutDate: "",
         guests: 1,
     });
+const [clicked, setClicked] = useState(false);
+const [bookingBool, setBookingBool] = useState(false);
 
     useEffect(() => {
         // Fetch the hotel details by ID
@@ -65,12 +67,15 @@ const HotelDetail = () => {
                     checkOut: bookingDetails.checkOutDate,
                     guests: bookingDetails.guests,
                     total_price: totalp,
+                    payed: false,
                 }),
             });
 
             if (response.ok) {
-                alert("Booking successful!");
-                navigate("/");
+              
+                setBookingBool(true);
+                
+               
             } else {
                 const errorData = await response.json();
                 alert(`Booking failed: ${errorData.error || "Please try again."}`);
@@ -92,6 +97,16 @@ const HotelDetail = () => {
             </div>
         );
     }
+
+
+
+
+    const handleClick = () => {
+        if (!clicked) {
+          setClicked(true);     
+        }else(setClicked(false));
+      };
+
 
     return (
         <>
@@ -177,12 +192,16 @@ const HotelDetail = () => {
                                             />
                                         </label>
                                         <button
-                                            onClick={handleBooking}
+                                            onClick={() => { handleBooking(); handleClick(); }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
-                                            Confirm Booking (${totalp})
+                                            Confirm Booking 
                                         </button>
                                     </div>
+                                   
+                                   
+
+                                    
                                 </div>
                             ) : (
                                 <div className="mt-12 bg-neutral-800 p-6 rounded-lg shadow-lg text-center">
@@ -202,6 +221,20 @@ const HotelDetail = () => {
                     </div>
                 </div>
                 <Footer />
+                {bookingBool &&<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
+    <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+        <h2 className="text-3xl font-bold text-white mb-6 text-center">Continue with payment in the Profile Tab</h2>
+        <div className="flex justify-center">
+            <button
+                onClick={() => navigate("/profile")}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+            >
+                Proceed to the Profile Tab
+            </button>
+        </div>
+    </div>
+</div>
+}
             </div>
         </>
     );
