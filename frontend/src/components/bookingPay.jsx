@@ -77,7 +77,7 @@ const BookingConfirmation = ({ onClose, bookingId, amount }) => {
     const handlePaymentSuccess = (paymentMethod) => {
         console.log("Payment Successful with ID:", paymentMethod.id);
         onClose();
-        navigate("/");
+        window.location.reload();
     };
 
     return (
@@ -115,7 +115,7 @@ const BookingConfirmation = ({ onClose, bookingId, amount }) => {
                             <button
                                 onClick={() => {
                                     onClose();
-                                    navigate("/");
+                                    
                                 }}
                                 className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600"
                             >

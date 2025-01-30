@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import BookingConfirmation from "../components/bookingPay";
 import axios from "axios";
-
+import {QRCodeSVG} from 'qrcode.react';
 const ProfilePage = () => {
     const [selectedBookingId, setSelectedBookingId] = useState(null);
     const navigate = useNavigate();
@@ -387,46 +387,72 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
 
                                         <div className="my-4">
                                             <p><strong>Check-in:</strong>
-                                                <input
+                                              { !booking.payed ?  <input
                                                     type="date"
                                                     value={formatDate(booking.checkIn)}
                                                     onChange={(e) => handleCheckInChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
-                                                />
+                                                /> : <p>  {formatDate(booking.checkIn)}</p> }
                                             </p>
                                             <p><strong>Check-out:</strong>
-                                                <input
+                                                {  !booking.payed ?  <input
                                                     type="date"
                                                     value={formatDate(booking.checkOut)}
                                                     onChange={(e) => handleCheckOutChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
-                                                />
+                                                />  : <p>  {formatDate(booking.checkOut)}</p> }
                                             </p>
                                             <p><strong>Number of guests:</strong>
-                                                <input
+                                                {  !booking.payed ? <input
                                                     type="number"
                                                     value={booking.guests}
                                                     onChange={(e) => handleGuestChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
-                                                />
+                                                />  : <p>  {(booking.guests)}</p>  }
                                             </p>
                                             <p><strong>Price for one night:</strong> {listingData[booking.listingID]?.Price}</p>
-                                            <p><strong>Total Price:</strong> <strong>${booking.total_price}</strong></p>
+                                            <p><strong>Total Price:</strong> <strong>€{booking.total_price}</strong></p>
                                         </div>
 
                                         <div className="flex space-x-4">
-                                            <button onClick={handleRestart2} className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Data</button>
-                                            <button onClick={() => deleteBooking(booking._id)} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Booking</button>
-                                            <button  onClick={() => {setSelectedBookingId(booking._id);setShowPayment(true);}}  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Pay</button>
-                                            <div> {booking.payed ? "payed" : "bad"} </div>
+                                            {  !booking.payed && <button onClick={handleRestart2} className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Data</button>}
+                                           {  !booking.payed && <button onClick={() => deleteBooking(booking._id)} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Booking</button> }
+                                            {!booking.payed && (
+                                                             <button
+                                                            onClick={() => {
+                                                                setSelectedBookingId(booking._id);
+                                                                setShowPayment(true);
+                                                                }}
+                                                                className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                                                                Pay
+                                                            </button>
+                                                            )}
 
+                                            <button className="bg-green-500 text-white"> {booking.payed && "payed"} </button>
+                                           {  booking.payed && <div>
+                                                <QRCodeSVG
+                                                level="Q"
+                                                style={{ width: 126 }}
+                                                value={JSON.stringify({
+                                                    bookingID: booking._id,
+                                                    bookingcheckIn: booking.checkIn,
+                                                    bookingcheckOut: booking.checkOut,
+                                                    bookingguests: booking.guests,
+                                                    bookingtotal_price: booking.total_price,
+                                                    bookingPayed: booking.payed,
+                                                    info: "show this qr to the hotel staff"
+                                                })}/> <p>Provide this QR code to the hotel staff</p></div>
+                                                }
+
+                                            
                                         </div>
+                                                
                                     </div>
-
+                                           
                                     <img
                                         src={`/images/${booking.listingID}.jpg`}
                                         alt="hotel-photo"
-                                        className="mt-4 md:mt-0 md:ml-6 w-48 h-48 object-cover rounded-lg"
+                                        className="mt-4 md:mt-0 md:ml-6 w-64 h-64 object-cover rounded-lg"
                                     />
                                 </li>
                             ))}
