@@ -4,8 +4,8 @@ const bodyparser = require('body-parser');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const cors = require('cors');
-
-const userdb = mongoose.createConnection('mongodb+srv://vocalsoda50:tXlQT8dGVB3BcdhR@clusterfuck.369d4.mongodb.net/Users');
+require("dotenv").config();
+const userdb = mongoose.createConnection(process.env.MODEL_USER);
 
 userdb.on('connected', () => console.log('Connected to MongoDB (Users)'));
 userdb.on('error', (err) => console.error('MongoDB connection error (Users):', err));
@@ -24,7 +24,7 @@ userSchema.pre('save', async function (next) {
 
 const User = userdb.model('User', userSchema);
 
-const listingdb = mongoose.createConnection('mongodb+srv://vocalsoda50:tXlQT8dGVB3BcdhR@clusterfuck.369d4.mongodb.net/Listings');
+const listingdb = mongoose.createConnection(process.env.MODEL_LISTING);
 
 listingdb.on('connected', () => console.log('Connected to MongoDB (Listings)'));
 listingdb.on('error', (err) => console.error('MongoDB connection error (Listings):', err));
@@ -42,7 +42,7 @@ const Listing = listingdb.model('Listings', listingsSchema);
 
 
 
-const booking = mongoose.createConnection('mongodb+srv://vocalsoda50:tXlQT8dGVB3BcdhR@clusterfuck.369d4.mongodb.net/Bookings');
+const booking = mongoose.createConnection(process.env.MODEL_BOOKING);
 
 booking.on('connected', () => console.log('Connected to MongoDB (Bookings)'));
 booking.on('error', (err) => console.error('MongoDB connection error (Bookings):', err));
@@ -62,7 +62,7 @@ const bookingSchema = new mongoose.Schema({
 
 const Booking = booking.model('Bookings', bookingSchema);
 
-// Export the models
+
 module.exports = {
     User,
     Listing,

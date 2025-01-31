@@ -16,7 +16,7 @@ app.use(bodyparser.json());
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
-
+    secure: true
 }));
 
 
@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
     resave: false,
-    secret: "randomsecretkey",
+    secret: process.env.SESSION_SECRET,
     saveUninitialized: true,
     cookie: {
         maxAge: 1000 * 60 * 60,
@@ -260,6 +260,7 @@ app.post('/bookings', async (req, res) => {
             checkOut: req.body.checkOut,
             guests: req.body.guests,
             total_price: req.body.total_price || req.body.totalp, // Support both naming conventions
+            payed: req.body.payed || false, // Default to false if not provided
         });
         await newBook.save();
         res.status(200).json({ message: "Booking created successfully", booking: newBook });

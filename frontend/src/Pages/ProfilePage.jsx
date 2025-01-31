@@ -386,30 +386,30 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                         <p className="text-sm text-gray-400"><strong>Booking ID:</strong> {booking._id}</p>
 
                                         <div className="my-4">
-                                            <p><strong>Check-in:</strong>
+                                            <p><strong>Check-in:</strong></p>
                                               { !booking.payed ?  <input
                                                     type="date"
                                                     value={formatDate(booking.checkIn)}
                                                     onChange={(e) => handleCheckInChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
                                                 /> : <p>  {formatDate(booking.checkIn)}</p> }
-                                            </p>
-                                            <p><strong>Check-out:</strong>
+                                            
+                                            <p><strong>Check-out:</strong> </p>
                                                 {  !booking.payed ?  <input
                                                     type="date"
                                                     value={formatDate(booking.checkOut)}
                                                     onChange={(e) => handleCheckOutChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
                                                 />  : <p>  {formatDate(booking.checkOut)}</p> }
-                                            </p>
-                                            <p><strong>Number of guests:</strong>
+                                           
+                                            <p><strong>Number of guests:</strong></p>
                                                 {  !booking.payed ? <input
                                                     type="number"
                                                     value={booking.guests}
                                                     onChange={(e) => handleGuestChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
                                                 />  : <p>  {(booking.guests)}</p>  }
-                                            </p>
+                                            
                                             <p><strong>Price for one night:</strong> {listingData[booking.listingID]?.Price}</p>
                                             <p><strong>Total Price:</strong> <strong>€{booking.total_price}</strong></p>
                                         </div>
