@@ -390,11 +390,6 @@ app.get('/profile', async (req, res) => {
 
 app.put('/user/update', async (req, res) => {
     const token = req.session.token;
-
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized. Please log in first." });
-    }
-
     try {
         const decoded = jwt.verify(token, secret_key);
         const userId = decoded.id;
