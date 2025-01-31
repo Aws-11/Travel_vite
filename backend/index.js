@@ -14,7 +14,7 @@ require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://travel-vite-frontend.onrender.com",
     credentials: true,
     secure: true
 }));
