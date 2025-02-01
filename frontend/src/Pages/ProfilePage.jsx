@@ -31,7 +31,7 @@ const [showPayment, setShowPayment] = useState(false);
                 return;
             }
     
-            const response = await fetch("http://localhost:3000/bookings_by_email", {
+            const response = await fetch("https://travel-vite-backend.onrender.com/bookings_by_email", {
 
                 method: "POST",
                 headers: {
