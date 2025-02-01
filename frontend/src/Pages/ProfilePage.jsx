@@ -22,20 +22,28 @@ const [showPayment, setShowPayment] = useState(false);
         }
     }, [email]);
 
-    const fetchBookingsByEmail = async (userEmail) => {
+    const fetchBookingsByEmail = async () => {
         try {
-            const response = await fetch("https://travel-vite-backend.onrender.com/bookings_by_email", {
+
+            const storedUser = JSON.parse(sessionStorage.getItem("user"));
+            if (!storedUser || !storedUser.email) {
+                setMessage("User not authenticated.");
+                return;
+            }
+    
+            const response = await fetch("http://localhost:3000/bookings_by_email", {
+
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email: userEmail }),
+                body: JSON.stringify({ email: storedUser.email }), // <-- Fix here
             });
-
+    
             if (!response.ok) {
                 throw new Error("Failed to fetch bookings.");
             }
-
+    
             const data = await response.json();
             setBookings(data);
         } catch (error) {
@@ -43,6 +51,7 @@ const [showPayment, setShowPayment] = useState(false);
             setMessage("Error fetching bookings.");
         }
     };
+    
 
     const getListingData = async (listingID) => {
         try {
@@ -87,47 +96,51 @@ const [showPayment, setShowPayment] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
+    
+        
+        if (!storedUser || !storedUser.email) {
+            setMessage("User not authenticated.");
+            return;
+        }
+    
         if (!/^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]{2,6}$/.test(email)) {
             setMessage("Invalid email format.");
             return;
         }
-
+    
         if (password.length < 8 && password !== "*******") {
             setMessage("Password must be at least 8 characters.");
             return;
         }
-
+    
         const updatedData = {
-            email: email.trim(),
+            currentEmail: storedUser.email,  // Send stored user's email for lookup
+            newEmail: email.trim() !== storedUser.email ? email.trim() : undefined,
             password: password !== "*******" ? password : undefined,
         };
 
+
         fetch("https://travel-vite-backend.onrender.com/user/update", {
+
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify(updatedData),
         })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.json().then((err) => {
-                        throw new Error(err.error || "Failed to update profile.");
-                    });
-                }
-                return response.json();
-            })
-            .then((data) => {
-                setMessage("Profile updated successfully!");
-                sessionStorage.setItem("user", JSON.stringify(data.updatedUser));
-            })
-            .catch((error) => {
-                console.error("Error updating profile:", error);
-                setMessage("An error occurred while updating your profile.");
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            setMessage("Profile updated successfully!");
+            sessionStorage.setItem("user", JSON.stringify(data.updatedUser));
+        })
+        .catch(error => {
+            console.error("Error updating profile:", error);
+            setMessage("An error occurred while updating your profile.");
+        });
     };
+    
 
     const handleRestart = () => {
         setTimeout(() => {
@@ -350,7 +363,7 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                     <h1 className="text-4xl font-bold text-center mb-6">Your Profile</h1>
                     {message && <p className="text-red-500 text-center">{message}</p>}
 
-                    <form onSubmit={(e) => { handleSubmit(e); handleRestart(e) }} className="bg-neutral-800 p-6 rounded shadow-md max-w-lg mx-auto">
+                    <form onSubmit={(e) => { handleSubmit(e); handleRestart(e)}} className="bg-neutral-800 p-6 rounded shadow-md max-w-lg mx-auto">
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium text-white">Email:</label>
                             <input

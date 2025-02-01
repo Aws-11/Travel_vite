@@ -389,54 +389,64 @@ app.get('/profile', async (req, res) => {
 
 
 app.put('/user/update', async (req, res) => {
-    const token = req.session.token;
-    if (!token) {
-        return res.status(401).json({ noTOKEN: "Unauthorized access. Please log in NO TOKEN." });
+
+
+
+    const { currentEmail, newEmail, password } = req.body;
+
+    if (!currentEmail) {
+        return res.status(400).json({ error: "Current email is required." });
+
+   
+
     }
     try {
-        const decoded = jwt.verify(token, secret_key);
-        const userId = decoded.id;
+        // Find the currently logged-in user by their stored email
+        const user = await User.findOne({ email: currentEmail });
 
-        const updateData = {};
-        let oldEmail;
-
-        // Check if email is being updated
-        if (req.body.email) {
-            const user = await User.findById(userId); // Find the user to get the old email
-            if (!user) {
-                return res.status(404).json({ error: "User not found" });
-            }
-            oldEmail = user.email; // Save the old email for reference
-            updateData.email = req.body.email; // Update to new email
+        if (!user) {
+            return res.status(404).json({ error: "User not found." });
         }
 
-        if (req.body.password) {
-            const hashedPassword = await bcrypt.hash(req.body.password, 10);
-            updateData.password = hashedPassword;
+        // Prepare the update object
+        const updatedData = {};
+        if (newEmail) updatedData.email = newEmail.trim();
+        if (password && password !== "*******") {
+            updatedData.password = await bcrypt.hash(password, 10);
         }
 
-        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        if(newEmail){
+            const existingUser = await User.findOne({ email: newEmail });
+            return res.status(400).json({ error: "Email already in use." });
+        }
+
+        // Update user in database
+        const updatedUser = await User.findOneAndUpdate(
+            { email: currentEmail },
+            updatedData,
+            { new: true }
+        );
+
         if (!updatedUser) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(500).json({ error: "User update failed." });
         }
-
-        // Update email in bookings if email was changed
-        if (oldEmail && req.body.email) {
-            await Booking.updateMany({ email: oldEmail }, { email: req.body.email });
+        if (newEmail) {
+            await Booking.updateMany(
+                { email: currentEmail },
+                { $set: { email: newEmail.trim() } }
+            );
         }
+        res.status(200).json({
+            message: "Profile updated successfully",
+            updatedUser,
+        });
 
-        // Update session information
-        req.session.user = {
-            id: updatedUser._id,
-            email: updatedUser.email,
-        };
-
-        res.status(200).json({ message: "Profile updated successfully", updatedUser });
     } catch (error) {
-        console.error("Error updating profile:", error.message || error);
+        console.error("Error updating profile:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 
 app.post('/bookings_by_email', async (req, res) => {
