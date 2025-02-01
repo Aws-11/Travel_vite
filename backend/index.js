@@ -389,48 +389,61 @@ app.get('/profile', async (req, res) => {
 
 
 app.put('/user/update', async (req, res) => {
-    console.log('PUT request received at /user/update');
-    
-    // Validate the request body
-    const { email, password } = req.body;
 
-    // Ensure the email is provided
-    if (!email) {
-        return res.status(400).json({ error: 'Email is required.' });
+
+    const { currentEmail, newEmail, password } = req.body;
+
+    if (!currentEmail) {
+        return res.status(400).json({ error: "Current email is required." });
     }
 
     try {
-        // Find the user by email
-        const user = await User.findOne({ email: email });
+        // Find the currently logged-in user by their stored email
+        const user = await User.findOne({ email: currentEmail });
 
-        // If the user is not found
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(404).json({ error: "User not found." });
         }
 
-        // Update user fields (password is optional, only update if provided)
+        // Prepare the update object
         const updatedData = {};
+        if (newEmail) updatedData.email = newEmail.trim();
         if (password && password !== "*******") {
-            updatedData.password = await bcrypt.hash(password, 10); // Hash the password before saving it
+            updatedData.password = await bcrypt.hash(password, 10);
         }
 
-        // Update the user in the database
-        const updatedUser = await User.findOneAndUpdate({ email: email }, updatedData, { new: true });
+        if(newEmail){
+            const existingUser = await User.findOne({ email: newEmail });
+            return res.status(400).json({ error: "Email already in use." });
+        }
+
+        // Update user in database
+        const updatedUser = await User.findOneAndUpdate(
+            { email: currentEmail },
+            updatedData,
+            { new: true }
+        );
 
         if (!updatedUser) {
-            return res.status(404).json({ error: "User update failed" });
+            return res.status(500).json({ error: "User update failed." });
         }
-
-        // Return the updated user data as JSON
+        if (newEmail) {
+            await Booking.updateMany(
+                { email: currentEmail },
+                { $set: { email: newEmail.trim() } }
+            );
+        }
         res.status(200).json({
             message: "Profile updated successfully",
             updatedUser,
         });
+
     } catch (error) {
         console.error("Error updating profile:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 
 app.post('/bookings_by_email', async (req, res) => {
