@@ -25,7 +25,7 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
-    const url = `http://localhost:3000/login`;
+    const url = `https://travel-vite-backend.onrender.com/login`;
     try {
       if (user.identifier && user.password) {
         const { data } = await axios.post(url, user, { withCredentials: true });
