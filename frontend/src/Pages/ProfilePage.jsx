@@ -88,28 +88,32 @@ const [showPayment, setShowPayment] = useState(false);
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        // Email validation
         if (!/^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]{2,6}$/.test(email)) {
             setMessage("Invalid email format.");
             return;
         }
 
+        // Password validation (optional, only if password is not the default placeholder)
         if (password.length < 8 && password !== "*******") {
             setMessage("Password must be at least 8 characters.");
             return;
         }
 
+        // Create the updated data object
         const updatedData = {
             email: email.trim(),
             password: password !== "*******" ? password : undefined,
         };
 
+        // Send a PUT request to the backend to update the profile
         fetch("http://localhost:3000/user/update", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
-            credentials: "include",
-            body: JSON.stringify(updatedData),
+            credentials: "include", // Ensure cookies or sessions are included
+            body: JSON.stringify(updatedData), // Send the updated data as JSON
         })
             .then((response) => {
                 if (!response.ok) {
@@ -121,7 +125,7 @@ const [showPayment, setShowPayment] = useState(false);
             })
             .then((data) => {
                 setMessage("Profile updated successfully!");
-                sessionStorage.setItem("user", JSON.stringify(data.updatedUser));
+                sessionStorage.setItem("user", JSON.stringify(data.updatedUser)); // Store updated user data
             })
             .catch((error) => {
                 console.error("Error updating profile:", error);
@@ -350,7 +354,7 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                     <h1 className="text-4xl font-bold text-center mb-6">Your Profile</h1>
                     {message && <p className="text-red-500 text-center">{message}</p>}
 
-                    <form onSubmit={(e) => { handleSubmit(e); handleRestart(e) }} className="bg-neutral-800 p-6 rounded shadow-md max-w-lg mx-auto">
+                    <form onSubmit={(e) => { handleSubmit(e)}} className="bg-neutral-800 p-6 rounded shadow-md max-w-lg mx-auto">
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium text-white">Email:</label>
                             <input

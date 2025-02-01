@@ -389,53 +389,45 @@ app.get('/profile', async (req, res) => {
 
 
 app.put('/user/update', async (req, res) => {
-    const token = req.session.token;
+    console.log('PUT request received at /user/update');
+    
+    // Validate the request body
+    const { email, password } = req.body;
 
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized. Please log in first." });
+    // Ensure the email is provided
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required.' });
     }
 
     try {
-        const decoded = jwt.verify(token, secret_key);
-        const userId = decoded.id;
+        // Find the user by email
+        const user = await User.findOne({ email: email });
 
-        const updateData = {};
-        let oldEmail;
-
-        // Check if email is being updated
-        if (req.body.email) {
-            const user = await User.findById(userId); // Find the user to get the old email
-            if (!user) {
-                return res.status(404).json({ error: "User not found" });
-            }
-            oldEmail = user.email; // Save the old email for reference
-            updateData.email = req.body.email; // Update to new email
-        }
-
-        if (req.body.password) {
-            const hashedPassword = await bcrypt.hash(req.body.password, 10);
-            updateData.password = hashedPassword;
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
-        if (!updatedUser) {
+        // If the user is not found
+        if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Update email in bookings if email was changed
-        if (oldEmail && req.body.email) {
-            await Booking.updateMany({ email: oldEmail }, { email: req.body.email });
+        // Update user fields (password is optional, only update if provided)
+        const updatedData = {};
+        if (password && password !== "*******") {
+            updatedData.password = await bcrypt.hash(password, 10); // Hash the password before saving it
         }
 
-        // Update session information
-        req.session.user = {
-            id: updatedUser._id,
-            email: updatedUser.email,
-        };
+        // Update the user in the database
+        const updatedUser = await User.findOneAndUpdate({ email: email }, updatedData, { new: true });
 
-        res.status(200).json({ message: "Profile updated successfully", updatedUser });
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User update failed" });
+        }
+
+        // Return the updated user data as JSON
+        res.status(200).json({
+            message: "Profile updated successfully",
+            updatedUser,
+        });
     } catch (error) {
-        console.error("Error updating profile:", error.message || error);
+        console.error("Error updating profile:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
