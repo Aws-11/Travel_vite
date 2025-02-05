@@ -8,18 +8,21 @@ const Hotels = () => {
     const [loading, setLoading] = useState(true);
     const [location, setLocation] = useState("");
     const [maxPrice, setMaxPrice] = useState(500);
+    const [photos, setPhotos] = useState({});
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchHotels = async () => {
             try {
-                const response = await fetch("http://localhost:3000/showlist");
+                const response = await fetch("http://localhost:3000/showlist");  // Adjusted URL to back-end
                 if (!response.ok) {
                     throw new Error("Failed to fetch hotels data");
                 }
                 const data = await response.json();
                 setHotels(data);
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error("Error fetching hotels data:", error);
+                setError("Failed to fetch hotels data");
             } finally {
                 setLoading(false);
             }
@@ -28,17 +31,23 @@ const Hotels = () => {
         fetchHotels();
     }, []);
 
-    if (loading) {
-        return (
-            <div>
-                <Navbar />
-                <div className="flex justify-center items-center min-h-screen">
-                    <p className="text-lg text-neutral-600">Loading...</p>
-                </div>
-                <Footer />
-            </div>
-        );
-    }
+    useEffect(() => {
+        const fetchPhotos = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/all-photos');  // Adjusted URL to back-end
+                if (!response.ok) {
+                    throw new Error("Failed to fetch photos");
+                }
+                const data = await response.json();
+                setPhotos(data);
+            } catch (error) {
+                console.error("Error fetching photos:", error);
+                setError("Failed to fetch photos");
+            }
+        };
+
+        fetchPhotos();
+    }, []);
 
     const filteredHotels = hotels.filter((hotel) => {
         return (
@@ -88,17 +97,21 @@ const Hotels = () => {
 
                 {/* Hotel List */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredHotels.length > 0 ? (
+                    {loading ? (
+                        <p>Loading...</p>
+                    ) : filteredHotels.length > 0 ? (
                         filteredHotels.map((hotel) => (
                             <div
                                 key={hotel._id}
-                                className="border rounded-lg shadow-md overflow-hidden bg-white"
-                            >
-                                <img
-                                    src={`/images/${hotel._id}.jpg`}
-                                    alt={`${hotel.Listname} photo`}
-                                    className="h-48 w-full object-cover"
-                                />
+                                className="border rounded-lg shadow-md overflow-hidden bg-white">
+                                    
+                                         <img
+                                            src={photos[hotel._id] ? photos[hotel._id] : 'fallback_image_url'} // Fallback if no photo exists
+                                            alt={`${hotel.Listname} fallback photo`}
+                                            className="h-48 w-full object-cover"
+                                        />
+
+
                                 <div className="p-4">
                                     <h2 className="text-xl font-semibold mb-2 bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
                                         {hotel.Listname}

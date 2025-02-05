@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import BookingConfirmation from "../components/bookingPay";
+
 const HotelDetail = () => {
     const { id } = useParams(); // Get the hotel _id from the URL
     const navigate = useNavigate();
@@ -15,8 +16,10 @@ const HotelDetail = () => {
         checkOutDate: "",
         guests: 1,
     });
-const [clicked, setClicked] = useState(false);
-const [bookingBool, setBookingBool] = useState(false);
+    const [clicked, setClicked] = useState(false);
+    const [bookingBool, setBookingBool] = useState(false);
+    const [photos, setPhotos] = useState({}); 
+
 
     useEffect(() => {
         // Fetch the hotel details by ID
@@ -38,9 +41,32 @@ const [bookingBool, setBookingBool] = useState(false);
         fetchHotelDetails();
     }, [id]);
 
+    useEffect(() => {
+        const fetchPhotos = async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/photos/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setPhotos((prevPhotos) => ({
+                        ...prevPhotos,
+                        [id]: data.length > 0 ? data[0].URL : "", // Use first photo URL
+                    }));
+                } else {
+                    console.error("Failed to fetch photos for hotel", id);
+                }
+            } catch (error) {
+                console.error("Error fetching photos:", error);
+            }
+        };
+
+        if (id) {
+            fetchPhotos();
+        }
+    }, [id]);
+
     const login = () => {
-        navigate("/login")
-    }
+        navigate("/login");
+    };
 
     const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
@@ -72,10 +98,7 @@ const [bookingBool, setBookingBool] = useState(false);
             });
 
             if (response.ok) {
-              
                 setBookingBool(true);
-                
-               
             } else {
                 const errorData = await response.json();
                 alert(`Booking failed: ${errorData.error || "Please try again."}`);
@@ -84,6 +107,10 @@ const [bookingBool, setBookingBool] = useState(false);
             console.error("Error making booking:", error);
             alert("An error occurred. Please try again.");
         }
+    };
+
+    const handleClick = () => {
+        setClicked(!clicked); // Toggle clicked state
     };
 
     if (loading) {
@@ -98,16 +125,6 @@ const [bookingBool, setBookingBool] = useState(false);
         );
     }
 
-
-
-
-    const handleClick = () => {
-        if (!clicked) {
-          setClicked(true);     
-        }else(setClicked(false));
-      };
-
-
     return (
         <>
             <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
@@ -117,8 +134,8 @@ const [bookingBool, setBookingBool] = useState(false);
                         {/* Hotel Image Section */}
                         <div>
                             <img
-                                src={`/images/${id}.jpg`}
-                                alt={`Hotel ${hotel.Listname}`}
+                                src={photos[hotel._id] ? photos[hotel._id] : 'fallback_image_url'}
+                                alt={`${hotel.Listname} fallback photo`}
                                 className="rounded-lg shadow-lg w-full h-96 object-cover"
                             />
                         </div>
@@ -195,13 +212,9 @@ const [bookingBool, setBookingBool] = useState(false);
                                             onClick={() => { handleBooking(); handleClick(); }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
-                                            Confirm Booking 
+                                            Confirm Booking
                                         </button>
                                     </div>
-                                   
-                                   
-
-                                    
                                 </div>
                             ) : (
                                 <div className="mt-12 bg-neutral-800 p-6 rounded-lg shadow-lg text-center">
@@ -221,20 +234,23 @@ const [bookingBool, setBookingBool] = useState(false);
                     </div>
                 </div>
                 <Footer />
-                {bookingBool &&<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
-    <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">Continue with payment in the Profile Tab</h2>
-        <div className="flex justify-center">
-            <button
-                onClick={() => navigate("/profile")}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
-            >
-                Proceed to the Profile Tab
-            </button>
-        </div>
-    </div>
-</div>
-}
+                {bookingBool && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
+                        <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+                            <h2 className="text-3xl font-bold text-white mb-6 text-center">
+                                Continue with payment in the Profile Tab
+                            </h2>
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => navigate("/profile")}
+                                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+                                >
+                                    Proceed to the Profile Tab
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

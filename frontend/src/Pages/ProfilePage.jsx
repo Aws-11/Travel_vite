@@ -15,7 +15,7 @@ const [showPayment, setShowPayment] = useState(false);
     const [password, setPassword] = useState("*******");
     const [bookings, setBookings] = useState([]);
     const [message, setMessage] = useState("");
-
+  const [photos, setPhotos] = useState({}); 
     useEffect(() => {
         if (email) {
             fetchBookingsByEmail(email);
@@ -351,6 +351,39 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
         return `${year}-${month}-${day}`;
     };
 
+    useEffect(() => {
+        const fetchPhotos = async () => {
+            if (!bookings || bookings.length === 0) {
+                return;
+            }
+    
+            try {
+                
+                for (const booking of bookings) {
+                    const listingID = booking.listingID;
+                    if (listingID) {
+                        const response = await fetch(`http://localhost:3000/photos/${listingID}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            setPhotos((prevPhotos) => ({
+                                ...prevPhotos,
+                                [listingID]: data.length > 0 ? data[0].URL : "",
+                            }));
+                        } else {
+                            console.error("Failed to fetch photos for hotel", listingID);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching photos:", error);
+            }
+        };
+    
+        fetchPhotos();
+    }, [bookings]);
+
+
+
     return (
         <>
             <Navbar />
@@ -459,10 +492,9 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                     </div>
                                            
                                     <img
-                                        src={`/images/${booking.listingID}.jpg`}
-                                        alt="hotel-photo"
-                                        className="mt-4 md:mt-0 md:ml-6 w-64 h-64 object-cover rounded-lg"
-                                    />
+                                src={photos[booking.listingID] ?photos[booking.listingID] : 'fallback_image_url'}
+                                className="rounded-lg shadow-lg max-w-full max-h-96 object-cover mx-auto"
+                            />
                                 </li>
                             ))}
                         </ul>

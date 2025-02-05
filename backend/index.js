@@ -5,7 +5,7 @@ const bodyparser = require('body-parser')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
 const cors = require('cors')
-const { User, Listing, Booking } = require('./models.js');
+const { User, Listing, Booking, photos } = require('./models.js');
 const jwt = require("jsonwebtoken")
 const secret_key = "secret"
 const app = express();
@@ -469,6 +469,69 @@ app.post('/bookings_by_email', async (req, res) => {
     }
 });
 
+
+app.post('/add_photo', async (req, res) => {
+    const { listingID, URL } = req.body;
+
+    if (!listingID || !URL) {
+        return res.status(400).json({ message: 'Both listingID and URL are required.' });
+    }
+
+    try {
+        const newPhoto = new photos({
+            listingID,
+            URL,
+        });
+
+        await newPhoto.save();
+
+        res.status(201).json({ message: 'Photo added successfully.', newPhoto });
+    } catch (error) {
+        console.error('Error adding photo:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+
+app.get('/photos/:listingID', async (req, res) => {
+    const { listingID } = req.params;
+    
+    try {
+        // Check if listingID is valid
+        if (!listingID) {
+            return res.status(400).json({ message: 'Listing ID is required.' });
+        }
+
+        const Photos = await photos.find({ listingID }); // Ensure the model is correct
+
+        if (!Photos || Photos.length === 0) {
+            return res.status(404).json({ message: 'No photos found for this listing.' });
+        }
+
+        res.status(200).json(Photos); // Return all photos for this listing
+      
+    } catch (error) {
+        console.error('Error fetching photos:', error);  // Logs the error for debugging
+        res.status(500).json({ message: 'Internal server error.', error: error.message });
+    }
+});
+
+
+
+app.get('/all-photos', async (req, res) => {
+    try {
+        const allPhotos = await photos.find(); 
+        const photosMap = allPhotos.reduce((acc, photo) => {
+            acc[photo.listingID] = photo.URL;
+            return acc;
+        }, {});
+
+        res.status(200).json(photosMap); 
+    } catch (error) {
+        console.error('Error fetching all photos:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
 
 
 

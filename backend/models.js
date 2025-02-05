@@ -63,10 +63,27 @@ const bookingSchema = new mongoose.Schema({
 const Booking = booking.model('Bookings', bookingSchema);
 
 
+const Photos = mongoose.createConnection(process.env.MODEL_PHOTOS);
+
+Photos.on('connected', () => console.log('Connected to MongoDB (Photos)'));
+Photos.on('error', (err) => console.error('MongoDB connection error (Bookings):', err));
+
+const PhotoSchema = new mongoose.Schema({
+    listingID: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing', required: true },
+    URL: { type: String},
+   
+});
+
+
+
+
+const photos = Photos.model('Photos', PhotoSchema);
+
+
 module.exports = {
     User,
     Listing,
-    Booking
+    Booking,
+    photos
 };
-
 
