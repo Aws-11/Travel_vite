@@ -44,7 +44,7 @@ const HotelDetail = () => {
     useEffect(() => {
         const fetchPhotos = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/photos/${id}`);
+                const response = await fetch(`https://travel-vite-backend.onrender.com/photos/${id}`);
                 if (response.ok) {
                     const data = await response.json();
                     setPhotos((prevPhotos) => ({

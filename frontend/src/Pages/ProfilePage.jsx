@@ -366,7 +366,7 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                 for (const booking of bookings) {
                     const listingID = booking.listingID;
                     if (listingID) {
-                        const response = await fetch(`http://localhost:3000/photos/${listingID}`);
+                        const response = await fetch(`https://travel-vite-backend.onrender.com/photos/${listingID}`);
                         if (response.ok) {
                             const data = await response.json();
                             setPhotos((prevPhotos) => ({

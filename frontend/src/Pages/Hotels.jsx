@@ -36,7 +36,7 @@ const Hotels = () => {
     useEffect(() => {
         const fetchPhotos = async () => {
             try {
-                const response = await fetch('http://localhost:3000/all-photos');  // Adjusted URL to back-end
+                const response = await fetch('https://travel-vite-backend.onrender.com/all-photos');  // Adjusted URL to back-end
                 if (!response.ok) {
                     throw new Error("Failed to fetch photos");
                 }
