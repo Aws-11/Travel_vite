@@ -25,7 +25,7 @@ const HotelDetail = () => {
         // Fetch the hotel details by ID
         const fetchHotelDetails = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/hotels/${id}`);
+                const response = await fetch(`https://travel-vite-backend.onrender.com/hotels/${id}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch hotel details");
                 }
@@ -81,7 +81,7 @@ const HotelDetail = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:3000/bookings", {
+            const response = await fetch("https://travel-vite-backend.onrender.com/bookings", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
