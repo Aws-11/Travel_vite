@@ -24,13 +24,15 @@ const [showPayment, setShowPayment] = useState(false);
 
     const fetchBookingsByEmail = async () => {
         try {
+
             const storedUser = JSON.parse(sessionStorage.getItem("user"));
             if (!storedUser || !storedUser.email) {
                 setMessage("User not authenticated.");
                 return;
             }
     
-            const response = await fetch("http://localhost:3000/bookings_by_email", {
+            const response = await fetch("https://travel-vite-backend.onrender.com/bookings_by_email", {
+
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -53,7 +55,7 @@ const [showPayment, setShowPayment] = useState(false);
 
     const getListingData = async (listingID) => {
         try {
-            const response = await fetch("http://localhost:3000/fetchbasedonid", {
+            const response = await fetch("https://travel-vite-backend.onrender.com/fetchbasedonid", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -116,8 +118,10 @@ const [showPayment, setShowPayment] = useState(false);
             newEmail: email.trim() !== storedUser.email ? email.trim() : undefined,
             password: password !== "*******" ? password : undefined,
         };
-    
-        fetch("http://localhost:3000/user/update", {
+
+
+        fetch("https://travel-vite-backend.onrender.com/user/update", {
+
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -149,7 +153,7 @@ const [showPayment, setShowPayment] = useState(false);
     };
 
     const deleteBooking = async (bookingId) => {
-        const url = "http://localhost:3000/del_Booking";
+        const url = "https://travel-vite-backend.onrender.com/del_Booking";
         try {
             const response = await axios.delete(url, {
                 data: { _id: bookingId },
@@ -179,7 +183,7 @@ const [showPayment, setShowPayment] = useState(false);
         }
     
         try {
-            const response = await fetch("http://localhost:3000/update_booking", {
+            const response = await fetch("https://travel-vite-backend.onrender.com/update_booking", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

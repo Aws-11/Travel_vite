@@ -14,7 +14,7 @@ require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://travel-vite-frontend.onrender.com",
     credentials: true,
     secure: true
 }));
@@ -391,12 +391,15 @@ app.get('/profile', async (req, res) => {
 app.put('/user/update', async (req, res) => {
 
 
+
     const { currentEmail, newEmail, password } = req.body;
 
     if (!currentEmail) {
         return res.status(400).json({ error: "Current email is required." });
-    }
 
+   
+
+    }
     try {
         // Find the currently logged-in user by their stored email
         const user = await User.findOne({ email: currentEmail });
@@ -412,10 +415,7 @@ app.put('/user/update', async (req, res) => {
             updatedData.password = await bcrypt.hash(password, 10);
         }
 
-        if(newEmail){
-            const existingUser = await User.findOne({ email: newEmail });
-            return res.status(400).json({ error: "Email already in use." });
-        }
+        
 
         // Update user in database
         const updatedUser = await User.findOneAndUpdate(

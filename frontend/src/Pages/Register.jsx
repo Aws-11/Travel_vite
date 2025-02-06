@@ -25,7 +25,7 @@ const Register = () => {
       return;
     }
 
-    const url = `http://localhost:3000/register`;
+    const url = `https://travel-vite-backend.onrender.com/register`;
     try {
       const { data } = await axios.post(url, {
         email: user.email,
