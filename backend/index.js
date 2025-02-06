@@ -412,11 +412,13 @@ app.put('/user/update', async (req, res) => {
             updatedData.password = await bcrypt.hash(password, 10);
         }
 
-        if(newEmail){
-            const existingUser = await User.findOne({ email: newEmail });
-            return res.status(400).json({ error: "Email already in use." });
+        if (newEmail && newEmail.trim()) { 
+            const existingUser = await User.findOne({ email: newEmail.trim() });
+            if (existingUser) {
+                return res.status(400).json({ error: "Email already in use." });
+            }
         }
-
+        
         // Update user in database
         const updatedUser = await User.findOneAndUpdate(
             { email: currentEmail },
