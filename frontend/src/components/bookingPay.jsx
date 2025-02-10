@@ -8,7 +8,6 @@ import axios from "axios";
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 
-
 const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
     const stripe = useStripe();
     const elements = useElements();
@@ -63,6 +62,48 @@ const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
         }
     };
 
+    return (
+        <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+                <label className="block text-sm">Card Details</label>
+                <CardElement className="py-2 px-4 bg-neutral-700 text-white rounded-md" />
+            </div>
+            <button
+                type="submit"
+                className="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
+                disabled={!stripe}
+            >
+                Pay {amount}€
+            </button>
+        </form>
+    );
+};
+
+const BookingConfirmation = ({ onClose, bookingId, amount }) => {
+    const navigate = useNavigate();
+    const [payNow, setPayNow] = useState(false);
+    const [bookingDetails, setBookingDetails] = useState(null);
+
+    useEffect(() => {
+        const fetchBookingDetails = async () => {
+            try {
+                const response = await axios.post("https://travel-vite-backend.onrender.com/booking_by_id", { id: bookingId });
+                setBookingDetails(response.data);
+            } catch (error) {
+                console.error("Error fetching booking details:", error);
+            }
+        };
+
+        if (bookingId) {
+            fetchBookingDetails();
+        }
+    }, [bookingId]);
+
+    const handlePaymentSuccess = (paymentMethod) => {
+        console.log("Payment Successful with ID:", paymentMethod.id);
+        onClose();
+        window.location.reload();
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
