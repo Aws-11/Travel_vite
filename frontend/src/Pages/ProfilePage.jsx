@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-import BookingConfirmation from "../components/bookingPay";
+import BookingConfirmation from "../components/bookingPay.jsx";
 import axios from "axios";
 import {QRCodeSVG} from 'qrcode.react';
 const ProfilePage = () => {
