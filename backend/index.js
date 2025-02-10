@@ -70,7 +70,7 @@ app.post('/login', async (req, res) => {
 
 app.post("/create-payment-intent", async (req, res) => {
     try {
-        console.log("Received request for payment intent:", req.body);
+        
         const { amount, bookingId } = req.body;
 
         if (!amount || !bookingId) {
@@ -78,15 +78,15 @@ app.post("/create-payment-intent", async (req, res) => {
         }
 
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100),
+            amount: Math.round(amount * 100), // Amount in cents
             currency: "eur",
-            payment_method_types: ["card"],
+            payment_method_types: ["card"], // Correct parameter format
         });
 
-        console.log("Payment Intent Created:", paymentIntent);
+        
         res.json({ clientSecret: paymentIntent.client_secret });
     } catch (error) {
-        console.error("Stripe Error:", error);
+       
         res.status(500).json({ error: "Payment processing error" });
     }
 });
@@ -104,6 +104,7 @@ app.post("/confirm-payment", async (req, res) => {
         res.status(500).json({ error: "Error updating payment status" });
     }
 });
+
 
 
 app.post("/booking_by_id", async (req, res) => {
