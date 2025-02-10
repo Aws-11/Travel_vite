@@ -19,21 +19,46 @@ const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
             return;
         }
 
-        const cardElement = elements.getElement(CardElement);
-        const { error, paymentMethod } = await stripe.createPaymentMethod({
-            type: "card",
-            card: cardElement,
-        });
+        try {
+            
+            const paymentIntentResponse = await axios.post("http://localhost:3000/create-payment-intent", {
+                amount,
+                bookingId,
+            });
+            
+            const { clientSecret } = paymentIntentResponse.data;
 
-        if (error) {
-            console.error(error);
-        } else {
-            try {
-                await axios.post("http://localhost:3000/confirm-payment", { bookingId });
-                onPaymentSuccess(paymentMethod);
-            } catch (error) {
-                console.error("Error confirming payment:", error);
+            if (!clientSecret) {
+                throw new Error("Failed to retrieve client secret");
             }
+
+            
+            const cardElement = elements.getElement(CardElement);
+            const { error, paymentMethod } = await stripe.createPaymentMethod({
+                type: "card",
+                card: cardElement,
+            });
+
+            if (error) {
+                console.error("Payment method creation error:", error);
+                return;
+            }
+
+           
+            const { paymentIntent, error: confirmationError } = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: paymentMethod.id,
+            });
+
+            if (confirmationError) {
+                console.error("Payment confirmation error:", confirmationError);
+                return;
+            }
+
+            
+            await axios.post("http://localhost:3000/confirm-payment", { bookingId });
+            onPaymentSuccess(paymentIntent);
+        } catch (error) {
+            console.error("Payment processing error:", error);
         }
     };
 
