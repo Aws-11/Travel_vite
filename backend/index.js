@@ -258,9 +258,11 @@ app.post('/bookings', async (req, res) => {
             listingID: req.body.listingID || req.body.hotelId, // Support both naming conventions
             checkIn: req.body.checkIn,
             checkOut: req.body.checkOut,
-            guests: req.body.guests,
+            guests_adults: req.body.guests_adults,
+            guests_children: req.body.guests_children,
+            booked_rooms: req.body.booked_rooms , // Support both naming conventions
             total_price: req.body.total_price || req.body.totalp, // Support both naming conventions
-            payed: req.body.payed || false, // Default to false if not provided
+            payed: req.body.payed || false, 
         });
         await newBook.save();
         res.status(200).json({ message: "Booking created successfully", booking: newBook });

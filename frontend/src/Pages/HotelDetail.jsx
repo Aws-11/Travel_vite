@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import BookingConfirmation from "../components/bookingPay";
+
+
 const HotelDetail = () => {
     const { id } = useParams(); // Get the hotel _id from the URL
     const navigate = useNavigate();
@@ -17,7 +19,12 @@ const HotelDetail = () => {
     });
 const [clicked, setClicked] = useState(false);
 const [bookingBool, setBookingBool] = useState(false);
-
+const [collorstate, seCollorstate] = useState(true);
+const [selected, setSelected] = useState(null);
+const [Rooms, setRooms] = useState(0);
+const minValue = 1;
+const [Adults, setAdults] = useState(0);
+const [Children, setChildren] = useState(0);
     useEffect(() => {
         // Fetch the hotel details by ID
         const fetchHotelDetails = async () => {
@@ -45,7 +52,14 @@ const [bookingBool, setBookingBool] = useState(false);
     const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
     const dateDiff = Math.max(0, (checkOut - checkIn) / (1000 * 60 * 60 * 24));
-    const totalp = hotel && hotel.Price ? dateDiff * hotel.Price : 0;
+    
+    const adults = bookingDetails.guests_adults ;
+    const children = bookingDetails.guests_children || 0;
+    const rooms = bookingDetails.booked_rooms ;
+    
+    const totalGuestsPrice = adults + children * 0.5;
+    const totalp = hotel && hotel.Price ? dateDiff * hotel.Price * totalGuestsPrice * rooms : 0;
+    
 
     const handleBooking = async () => {
         if (!isLoggedIn) {
@@ -65,7 +79,9 @@ const [bookingBool, setBookingBool] = useState(false);
                     listingID: id,
                     checkIn: bookingDetails.checkInDate,
                     checkOut: bookingDetails.checkOutDate,
-                    guests: bookingDetails.guests,
+                    guests_adults: bookingDetails.guests_adults,
+                    guests_children: bookingDetails.guests_children,
+                    booked_rooms: bookingDetails.booked_rooms,
                     total_price: totalp,
                     payed: false,
                 }),
@@ -99,7 +115,61 @@ const [bookingBool, setBookingBool] = useState(false);
     }
 
 
-
+    const amountClicked = (num) => {
+        setBookingDetails({ ...bookingDetails, guests_adults: num });
+    
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`${i}`).style.backgroundColor = "";
+            document.getElementById(`${i}`).style.color = "";
+        }
+    
+        if (num >= 1 && num <= 5) {
+          
+            if (bookingDetails.guests_adults === num) { 
+                setBookingDetails({ ...bookingDetails, guests_adults: null }); 
+                return; 
+            }
+            document.getElementById(`${num}`).style.backgroundColor = "gray";
+            document.getElementById(`${num}`).style.color = "black";
+        }
+    };
+    
+    const amountClicked2 = (num2) => {
+        setBookingDetails({ ...bookingDetails, guests_children: num2 });
+    
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`${i}c`).style.backgroundColor = "";
+            document.getElementById(`${i}c`).style.color = "";
+        }
+    
+        if (num2 >= 1 && num2 <= 5) {
+            if (bookingDetails.guests_children === num2) { 
+                setBookingDetails({ ...bookingDetails, guests_children: null }); 
+                return; 
+            }
+            document.getElementById(`${num2}c`).style.backgroundColor = "gray";
+            document.getElementById(`${num2}c`).style.color = "black";
+        }
+    };
+    
+    const amountClicked3hotels = (num3) => {
+        setBookingDetails({ ...bookingDetails, booked_rooms: num3 });
+    
+        for (let i = 1; i <= 3; i++) { 
+            document.getElementById(`${i}h`).style.backgroundColor = "";
+            document.getElementById(`${i}h`).style.color = "";
+        }
+    
+        if (num3 >= 1 && num3 <= 3) { 
+            if (bookingDetails.booked_rooms === num3) { 
+                setBookingDetails({ ...bookingDetails, booked_rooms: null });
+                return; 
+            }
+            document.getElementById(`${num3}h`).style.backgroundColor = "gray";
+            document.getElementById(`${num3}h`).style.color = "black";
+        }
+    };
+   
 
     const handleClick = () => {
         if (!clicked) {
@@ -107,14 +177,84 @@ const [bookingBool, setBookingBool] = useState(false);
         }else(setClicked(false));
       };
 
+const maxVal = 20;
+const maxValChildren = 10;
+const maxValRooms = 10;
+
+
+
+const handleIncrement = (type) => {
+    switch (type) {
+case "rooms":
+    setRooms(prevRooms => {
+        const newRooms = Math.min(maxValRooms, prevRooms + 1);
+        setBookingDetails(prev => ({ ...prev, booked_rooms: newRooms }));
+        return newRooms;
+    });
+    break;
+
+case "adults":
+    setAdults(prevAdults => {
+        const newAdults = Math.min(maxVal, prevAdults + 1);
+        setBookingDetails(prev => ({ ...prev, guests_adults: newAdults }));
+        return newAdults;
+    });
+    break;
+    case "children":
+        setChildren(prevChildren => {
+            const newChild = Math.min(maxValChildren, prevChildren + 1);
+            setBookingDetails(prev => ({ ...prev, guests_children: newChild }));
+            return newChild;
+        });
+        break;
+    default:
+        break;
+};
+
+};
+
+
+
+
+const handleDecrement = (type) => {
+    switch (type) {
+case "rooms":
+    setRooms(prevRooms => {
+        const newRooms = Math.max(1, prevRooms - 1);
+        setBookingDetails(prev => ({ ...prev, booked_rooms: newRooms }));
+        return newRooms;
+    });
+    break;
+
+case "adults":
+    setAdults(prevAdults => {
+        const newAdults = Math.max(1, prevAdults - 1);
+        setBookingDetails(prev => ({ ...prev, guests_adults: newAdults }));
+        return newAdults;
+    });
+    break;
+    case "children":
+        setChildren(prevChildren => {
+            const newChild = Math.max(0, prevChildren - 1);
+            setBookingDetails(prev => ({ ...prev, guests_children: newChild }));
+            return newChild;
+        });
+        break;
+    default:
+        break;
+};
+
+};
+
+
 
     return (
-        <>
+        <>    
             <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
             <div className="min-h-screen bg-neutral-900 text-white p-20">
                 <div className="container mx-auto py-10 px-6 lg:px-20">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Hotel Image Section */}
+                       
                         <div>
                             <img
                                 src={`/images/${id}.jpg`}
@@ -123,7 +263,7 @@ const [bookingBool, setBookingBool] = useState(false);
                             />
                         </div>
 
-                        {/* Hotel Details Section */}
+                       
                         <div>
                             <h1 className="text-4xl font-bold text-white">{hotel.Listname}</h1>
                             <p className="text-lg mt-4">
@@ -175,33 +315,41 @@ const [bookingBool, setBookingBool] = useState(false);
                                                 }
                                                 className="mt-1 block w-full border rounded-md py-2 px-3 bg-neutral-700 text-white"
                                             />
+                                        </label>                   
+
+                                        <label className="block">
+                                            <span className="text-sm font-medium">Guests Adults </span>
+                                                <br />
+
+                                                
+                                                <button onClick={() => handleDecrement("adults")} id="1h"  className={`px-4 py-2 border`}>-</button>
+                                            <button  id="2h" className={`px-4 py-2 border`}>{Adults}</button>
+                                            <button onClick={() => handleIncrement('adults')} id="3h" className={`px-4 py-2 border`}>+</button>
+
+  
+                                        </label>
+                               <label className="block">
+                                            <span className="text-sm font-medium">Guests Children</span>
+                                            <br />
+                                            <button onClick={() => handleDecrement("children")} id="1h"  className={`px-4 py-2 border`}>-</button>
+                                            <button  id="2h" className={`px-4 py-2 border`}>{Children}</button>
+                                            <button onClick={() => handleIncrement('children')} id="3h" className={`px-4 py-2 border`}>+</button>
                                         </label>
                                         <label className="block">
-                                            <span className="text-sm font-medium">Guests</span>
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                value={bookingDetails.guests}
-                                                onChange={(e) =>
-                                                    setBookingDetails({
-                                                        ...bookingDetails,
-                                                        guests: parseInt(e.target.value, 10),
-                                                    })
-                                                }
-                                                className="mt-1 block w-full border rounded-md py-2 px-3 bg-neutral-700 text-white"
-                                            />
+                                            <span className="text-sm font-medium">Rooms</span>
+                                            <br />
+                                            <button onClick={() => handleDecrement("rooms")} id="1h"  className={`px-4 py-2 border`}>-</button>
+                                            <button  id="2h" className={`px-4 py-2 border`}>{Rooms}</button>
+                                            <button onClick={() => handleIncrement('rooms')} id="3h" className={`px-4 py-2 border`}>+</button>
                                         </label>
+                                       
                                         <button
-                                            onClick={() => { handleBooking(); handleClick(); }}
+                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }) }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
                                             Confirm Booking 
                                         </button>
-                                    </div>
-                                   
-                                   
-
-                                    
+                                    </div>                 
                                 </div>
                             ) : (
                                 <div className="mt-12 bg-neutral-800 p-6 rounded-lg shadow-lg text-center">
