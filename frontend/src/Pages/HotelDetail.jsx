@@ -127,9 +127,6 @@ const [Children, setChildren] = useState(0);
         }
     };
 
-    const handleClick = () => {
-        setClicked(!clicked); // Toggle clicked state
-    };
 
     if (loading) {
         return (
