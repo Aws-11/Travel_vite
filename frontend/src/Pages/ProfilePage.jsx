@@ -625,9 +625,10 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                     </div>
                                            
                                     <img
-                                src={photos[booking.listingID] ?photos[booking.listingID] : 'fallback_image_url'}
-                                className="rounded-lg shadow-lg max-w-full max-h-96 object-cover mx-auto"
-                            />
+                                            src={photos[booking.listingID] ? photos[booking.listingID] : 'fallback_image_url'}
+                                            className="rounded-lg shadow-lg max-w-full max-h-[500px] object-cover mx-auto"
+                                    />
+
                                 </li>
                             ))}
                         </ul>
