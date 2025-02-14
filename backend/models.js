@@ -52,8 +52,10 @@ const bookingSchema = new mongoose.Schema({
     listingID: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing', required: true },
     checkIn: {type: Date, required: true},
     checkOut: {type: Date, required: true},
-    guests: {type: Number, required: true},
+    guests_adults: {type: Number, required: true},
+    guests_children: {type: Number},
     total_price: {type: Number, required: true},
+    booked_rooms: {type: Number, required: true},
     payed: {type: Boolean, required: true}
 });
 

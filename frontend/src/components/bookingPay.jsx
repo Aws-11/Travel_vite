@@ -21,7 +21,9 @@ const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
 
         try {
             
+
             const paymentIntentResponse = await axios.post("https://travel-vite-backend.onrender.com/create-payment-intent", {
+
                 amount,
                 bookingId,
             });
@@ -55,7 +57,9 @@ const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
             }
 
             
+
             await axios.post("https://travel-vite-backend.onrender.com/confirm-payment", { bookingId });
+
             onPaymentSuccess(paymentIntent);
         } catch (error) {
             console.error("Payment processing error:", error);
