@@ -15,7 +15,10 @@ const [showPayment, setShowPayment] = useState(false);
     const [password, setPassword] = useState("*******");
     const [bookings, setBookings] = useState([]);
     const [message, setMessage] = useState("");
-
+    const [Adults, setAdults] = useState(0); // Initialize to 0
+    const [Children, setChildren] = useState(0); // Initialize to 0
+    const [Rooms, setRooms] = useState(0);
+    const minValue = 1;
     useEffect(() => {
         if (email) {
             fetchBookingsByEmail(email);
@@ -38,6 +41,12 @@ const [showPayment, setShowPayment] = useState(false);
 
             const data = await response.json();
             setBookings(data);
+
+            if (data.length > 0) {
+                setAdults(data[0].guests_adults || 0);
+                setChildren(data[0].guests_children || 0); 
+                setRooms(data[0].booked_rooms || 0); 
+            } 
         } catch (error) {
             console.error(error);
             setMessage("Error fetching bookings.");
@@ -162,10 +171,10 @@ const [showPayment, setShowPayment] = useState(false);
 
 
     const updateBooking = async (updatedBookingData) => {
-        const { _id, checkIn, checkOut, guests, total_price } = updatedBookingData;
+        const { _id, checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price } = updatedBookingData;
     
-        if (!_id || !checkIn || !checkOut || guests == null || total_price == null) {
-            console.error("All fields (_id, checkIn, checkOut, guests, total_price) are required.");
+        if (!_id || !checkIn || !checkOut || guests_adults == null || guests_children == null || booked_rooms == null || total_price == null) {
+            console.error("All fields are required.");
             return { error: "All fields are required." };
         }
     
@@ -175,7 +184,7 @@ const [showPayment, setShowPayment] = useState(false);
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ _id, checkIn, checkOut, guests, total_price }),
+                body: JSON.stringify({ _id, checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price }), // ✅ Fixed: Includes booked_rooms
             });
     
             if (!response.ok) {
@@ -192,6 +201,7 @@ const [showPayment, setShowPayment] = useState(false);
             return { error: "Failed to update booking due to a network error." };
         }
     };
+    
 
 
 
@@ -342,6 +352,92 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
         return `${year}-${month}-${day}`;
     };
 
+    const maxValRooms = 10;
+    const minVal = 1; 
+    
+    const handleIncrement = async (type, booking) => {
+        let updatedBooking = { ...booking };
+    
+        switch (type) {
+            case "rooms":
+                updatedBooking.booked_rooms = Math.min(maxValRooms, booking.booked_rooms + 1);
+                break;
+            case "adults":
+                updatedBooking.guests_adults = Math.min(20, booking.guests_adults + 1);
+                break;
+            case "children":
+                updatedBooking.guests_children = Math.min(10, booking.guests_children + 1);
+                break;
+            default:
+                return;
+        }
+    
+        try {
+            const newTotalPrice = await calculateTotalPrice(updatedBooking.checkIn, updatedBooking.checkOut, listingData[booking.listingID]?.Price || 0, updatedBooking.guests_adults + updatedBooking.guests_children);
+    
+            const updatedBookingData = await updateBooking({
+                ...updatedBooking,
+                total_price: newTotalPrice,
+            });
+    
+            if (!updatedBookingData.error) {
+                console.log("Booking updated successfully:", updatedBookingData);
+    
+                setBookings(prevBookings =>
+                    prevBookings.map(b => (b._id === booking._id ? updatedBookingData : b))
+                );
+    
+            } else {
+                alert("Failed to update booking.");
+            }
+        } catch (error) {
+            console.error("Error updating booking:", error);
+            alert("An error occurred while updating the booking.");
+        }
+    };
+    
+    const handleDecrement = async (type, booking) => {
+        let updatedBooking = { ...booking };
+    
+        switch (type) {
+            case "rooms":
+                updatedBooking.booked_rooms = Math.max(minVal, booking.booked_rooms - 1); // ✅ Uses defined minValue
+                break;
+            case "adults":
+                updatedBooking.guests_adults = Math.max(minVal, booking.guests_adults - 1);
+                break;
+            case "children":
+                updatedBooking.guests_children = Math.max(0, booking.guests_children - 1);
+                break;
+            default:
+                return;
+        }
+    
+        try {
+            const newTotalPrice = await calculateTotalPrice(updatedBooking.checkIn, updatedBooking.checkOut, listingData[booking.listingID]?.Price || 0, updatedBooking.guests_adults + updatedBooking.guests_children);
+    
+            const updatedBookingData = await updateBooking({
+                ...updatedBooking,
+                total_price: newTotalPrice,
+            });
+    
+            if (!updatedBookingData.error) {
+                console.log("Booking updated successfully:", updatedBookingData);
+    
+                setBookings(prevBookings =>
+                    prevBookings.map(b => (b._id === booking._id ? updatedBookingData : b))
+                );
+    
+            } else {
+                alert("Failed to update booking.");
+            }
+        } catch (error) {
+            console.error("Error updating booking:", error);
+            alert("An error occurred while updating the booking.");
+        }
+    };
+    
+
     return (
         <>
             <Navbar />
@@ -402,14 +498,42 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
                                                 />  : <p>  {formatDate(booking.checkOut)}</p> }
                                            
-                                            <p><strong>Number of guests:</strong></p>
-                                                {  !booking.payed ? <input
-                                                    type="number"
-                                                    value={booking.guests}
-                                                    onChange={(e) => handleGuestChange(e, booking.listingID)}
-                                                    className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
-                                                />  : <p>  {(booking.guests)}</p>  }
-                                            
+                                        
+                                            {!booking.payed ? (
+                                                <>
+                                                    <label className="block">
+                                                    <span className="text-sm font-medium">Guests Adults</span><br />
+                                                    <button onClick={() => handleDecrement("adults", booking)} className="px-4 py-2 border">-</button>
+                                                    <button className="px-4 py-2 border">{booking.guests_adults}</button>
+                                                    <button onClick={() => handleIncrement("adults", booking)} className="px-4 py-2 border">+</button>
+                                                </label>
+
+                                                <label className="block">
+                                                    <span className="text-sm font-medium">Guests Children</span><br />
+                                                    <button onClick={() => handleDecrement("children", booking)} className="px-4 py-2 border">-</button>
+                                                    <button className="px-4 py-2 border">{booking.guests_children}</button>
+                                                    <button onClick={() => handleIncrement("children", booking)} className="px-4 py-2 border">+</button>
+                                                </label>
+
+                                                <label className="block">
+                                                    <span className="text-sm font-medium">Rooms</span><br />
+                                                    <button onClick={() => handleDecrement("rooms", booking)} className="px-4 py-2 border">-</button>
+                                                    <button className="px-4 py-2 border">{booking.booked_rooms}</button>
+                                                    <button onClick={() => handleIncrement("rooms", booking)} className="px-4 py-2 border">+</button>
+                                                </label>
+                                                </>
+                                            ) : (
+                                                 "" 
+                                                
+                                            )}
+
+                                                {booking.payed ? (
+                                                    <>
+                                                        <p>Adults: {booking.guests_adults}</p>
+                                                        {booking.guests_children ? <p>Children: {booking.guests_children}</p> : null}
+                                                        <p>Rooms: {booking.booked_rooms}</p>
+                                                    </>
+                                                ) : null}              
                                             <p><strong>Price for one night:</strong> {listingData[booking.listingID]?.Price}</p>
                                             <p><strong>Total Price:</strong> <strong>€{booking.total_price}</strong></p>
                                         </div>

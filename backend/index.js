@@ -127,25 +127,22 @@ app.post("/booking_by_id", async (req, res) => {
 
 
 app.put('/update_booking', async (req, res) => {
-    const { _id, checkIn, checkOut, guests, total_price } = req.body;
+    const { _id, checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price } = req.body;
 
-    if (!_id || !checkIn || !checkOut || guests == null || total_price == null) {
-        return res.status(400).json({ message: 'All fields (_id, checkIn, checkOut, guests, total_price) are required.' });
+    if (!_id || !checkIn || !checkOut || guests_adults == null || guests_children == null || booked_rooms == null || total_price == null) {
+        return res.status(400).json({ message: 'All fields are required.' });
     }
 
     try {
-
         const updatedBooking = await Booking.findByIdAndUpdate(
             _id,
-            { checkIn, checkOut, guests, total_price },
+            { checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price },  // ✅ Fixed: Includes booked_rooms
             { new: true, runValidators: true }
         );
-
 
         if (!updatedBooking) {
             return res.status(404).json({ message: 'Booking not found.' });
         }
-
 
         res.status(200).json({
             message: 'Booking updated successfully.',
@@ -156,6 +153,7 @@ app.put('/update_booking', async (req, res) => {
         res.status(500).json({ message: 'Internal server error.' });
     }
 });
+
 
 
 
