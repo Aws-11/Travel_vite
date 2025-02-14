@@ -21,7 +21,9 @@ const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
 
         try {
             
-            const paymentIntentResponse = await axios.post("http://localhost:3000/create-payment-intent", {
+
+            const paymentIntentResponse = await axios.post("https://travel-vite-backend.onrender.com/create-payment-intent", {
+
                 amount,
                 bookingId,
             });
@@ -55,7 +57,9 @@ const PaymentForm = ({ amount, onPaymentSuccess, bookingId }) => {
             }
 
             
-            await axios.post("http://localhost:3000/confirm-payment", { bookingId });
+
+            await axios.post("https://travel-vite-backend.onrender.com/confirm-payment", { bookingId });
+
             onPaymentSuccess(paymentIntent);
         } catch (error) {
             console.error("Payment processing error:", error);
@@ -87,7 +91,7 @@ const BookingConfirmation = ({ onClose, bookingId, amount }) => {
     useEffect(() => {
         const fetchBookingDetails = async () => {
             try {
-                const response = await axios.post("http://localhost:3000/booking_by_id", { id: bookingId });
+                const response = await axios.post("https://travel-vite-backend.onrender.com/booking_by_id", { id: bookingId });
                 setBookingDetails(response.data);
             } catch (error) {
                 console.error("Error fetching booking details:", error);

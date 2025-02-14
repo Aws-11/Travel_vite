@@ -5,7 +5,7 @@ const bodyparser = require('body-parser')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
 const cors = require('cors')
-const { User, Listing, Booking } = require('./models.js');
+const { User, Listing, Booking, photos } = require('./models.js');
 const jwt = require("jsonwebtoken")
 const secret_key = "secret"
 const app = express();
@@ -14,7 +14,7 @@ require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://travel-vite-frontend.onrender.com",
     credentials: true,
     secure: true
 }));
@@ -104,6 +104,7 @@ app.post("/confirm-payment", async (req, res) => {
         res.status(500).json({ error: "Error updating payment status" });
     }
 });
+
 
 
 app.post("/booking_by_id", async (req, res) => {
@@ -389,56 +390,66 @@ app.get('/profile', async (req, res) => {
 
 
 app.put('/user/update', async (req, res) => {
-    const token = req.session.token;
 
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized. Please log in first." });
+
+
+    const { currentEmail, newEmail, password } = req.body;
+
+    if (!currentEmail) {
+        return res.status(400).json({ error: "Current email is required." });
+
+   
+
     }
-
     try {
-        const decoded = jwt.verify(token, secret_key);
-        const userId = decoded.id;
+        // Find the currently logged-in user by their stored email
+        const user = await User.findOne({ email: currentEmail });
 
-        const updateData = {};
-        let oldEmail;
+        if (!user) {
+            return res.status(404).json({ error: "User not found." });
+        }
 
-        // Check if email is being updated
-        if (req.body.email) {
-            const user = await User.findById(userId); // Find the user to get the old email
-            if (!user) {
-                return res.status(404).json({ error: "User not found" });
+        // Prepare the update object
+        const updatedData = {};
+        if (newEmail) updatedData.email = newEmail.trim();
+        if (password && password !== "*******") {
+            updatedData.password = await bcrypt.hash(password, 10);
+        }
+
+        if (newEmail && newEmail.trim()) { 
+            const existingUser = await User.findOne({ email: newEmail.trim() });
+            if (existingUser) {
+                return res.status(400).json({ error: "Email already in use." });
             }
-            oldEmail = user.email; // Save the old email for reference
-            updateData.email = req.body.email; // Update to new email
         }
+        
+        // Update user in database
+        const updatedUser = await User.findOneAndUpdate(
+            { email: currentEmail },
+            updatedData,
+            { new: true }
+        );
 
-        if (req.body.password) {
-            const hashedPassword = await bcrypt.hash(req.body.password, 10);
-            updateData.password = hashedPassword;
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
         if (!updatedUser) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(500).json({ error: "User update failed." });
         }
-
-        // Update email in bookings if email was changed
-        if (oldEmail && req.body.email) {
-            await Booking.updateMany({ email: oldEmail }, { email: req.body.email });
+        if (newEmail) {
+            await Booking.updateMany(
+                { email: currentEmail },
+                { $set: { email: newEmail.trim() } }
+            );
         }
+        res.status(200).json({
+            message: "Profile updated successfully",
+            updatedUser,
+        });
 
-        // Update session information
-        req.session.user = {
-            id: updatedUser._id,
-            email: updatedUser.email,
-        };
-
-        res.status(200).json({ message: "Profile updated successfully", updatedUser });
     } catch (error) {
-        console.error("Error updating profile:", error.message || error);
+        console.error("Error updating profile:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 
 app.post('/bookings_by_email', async (req, res) => {
@@ -464,6 +475,69 @@ app.post('/bookings_by_email', async (req, res) => {
     }
 });
 
+
+app.post('/add_photo', async (req, res) => {
+    const { listingID, URL } = req.body;
+
+    if (!listingID || !URL) {
+        return res.status(400).json({ message: 'Both listingID and URL are required.' });
+    }
+
+    try {
+        const newPhoto = new photos({
+            listingID,
+            URL,
+        });
+
+        await newPhoto.save();
+
+        res.status(201).json({ message: 'Photo added successfully.', newPhoto });
+    } catch (error) {
+        console.error('Error adding photo:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+
+app.get('/photos/:listingID', async (req, res) => {
+    const { listingID } = req.params;
+    
+    try {
+        // Check if listingID is valid
+        if (!listingID) {
+            return res.status(400).json({ message: 'Listing ID is required.' });
+        }
+
+        const Photos = await photos.find({ listingID }); // Ensure the model is correct
+
+        if (!Photos || Photos.length === 0) {
+            return res.status(404).json({ message: 'No photos found for this listing.' });
+        }
+
+        res.status(200).json(Photos); // Return all photos for this listing
+      
+    } catch (error) {
+        console.error('Error fetching photos:', error);  // Logs the error for debugging
+        res.status(500).json({ message: 'Internal server error.', error: error.message });
+    }
+});
+
+
+
+app.get('/all-photos', async (req, res) => {
+    try {
+        const allPhotos = await photos.find(); 
+        const photosMap = allPhotos.reduce((acc, photo) => {
+            acc[photo.listingID] = photo.URL;
+            return acc;
+        }, {});
+
+        res.status(200).json(photosMap); 
+    } catch (error) {
+        console.error('Error fetching all photos:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
 
 
 

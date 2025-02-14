@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import BookingConfirmation from "../components/bookingPay";
+import BookingConfirmation from "../components/bookingPay.jsx";
 
 
 const HotelDetail = () => {
@@ -17,6 +17,7 @@ const HotelDetail = () => {
         checkOutDate: "",
         guests: 1,
     });
+
 const [clicked, setClicked] = useState(false);
 const [bookingBool, setBookingBool] = useState(false);
 const [collorstate, seCollorstate] = useState(true);
@@ -25,11 +26,15 @@ const [Rooms, setRooms] = useState(0);
 const minValue = 1;
 const [Adults, setAdults] = useState(0);
 const [Children, setChildren] = useState(0);
+    const [photos, setPhotos] = useState({}); 
+
+
+
     useEffect(() => {
         // Fetch the hotel details by ID
         const fetchHotelDetails = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/hotels/${id}`);
+                const response = await fetch(`https://travel-vite-backend.onrender.com/hotels/${id}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch hotel details");
                 }
@@ -45,9 +50,32 @@ const [Children, setChildren] = useState(0);
         fetchHotelDetails();
     }, [id]);
 
+    useEffect(() => {
+        const fetchPhotos = async () => {
+            try {
+                const response = await fetch(`https://travel-vite-backend.onrender.com/photos/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setPhotos((prevPhotos) => ({
+                        ...prevPhotos,
+                        [id]: data.length > 0 ? data[0].URL : "", // Use first photo URL
+                    }));
+                } else {
+                    console.error("Failed to fetch photos for hotel", id);
+                }
+            } catch (error) {
+                console.error("Error fetching photos:", error);
+            }
+        };
+
+        if (id) {
+            fetchPhotos();
+        }
+    }, [id]);
+
     const login = () => {
-        navigate("/login")
-    }
+        navigate("/login");
+    };
 
     const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
@@ -69,7 +97,7 @@ const [Children, setChildren] = useState(0);
         }
 
         try {
-            const response = await fetch("http://localhost:3000/bookings", {
+            const response = await fetch("https://travel-vite-backend.onrender.com/bookings", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -88,10 +116,7 @@ const [Children, setChildren] = useState(0);
             });
 
             if (response.ok) {
-              
                 setBookingBool(true);
-                
-               
             } else {
                 const errorData = await response.json();
                 alert(`Booking failed: ${errorData.error || "Please try again."}`);
@@ -100,6 +125,10 @@ const [Children, setChildren] = useState(0);
             console.error("Error making booking:", error);
             alert("An error occurred. Please try again.");
         }
+    };
+
+    const handleClick = () => {
+        setClicked(!clicked); // Toggle clicked state
     };
 
     if (loading) {
@@ -113,6 +142,7 @@ const [Children, setChildren] = useState(0);
             </div>
         );
     }
+
 
 
     const amountClicked = (num) => {
@@ -248,6 +278,7 @@ case "adults":
 
 
 
+
     return (
         <>    
             <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
@@ -257,8 +288,8 @@ case "adults":
                        
                         <div>
                             <img
-                                src={`/images/${id}.jpg`}
-                                alt={`Hotel ${hotel.Listname}`}
+                                src={photos[hotel._id] ? photos[hotel._id] : 'fallback_image_url'}
+                                alt={`${hotel.Listname} fallback photo`}
                                 className="rounded-lg shadow-lg w-full h-96 object-cover"
                             />
                         </div>
@@ -347,9 +378,11 @@ case "adults":
                                             onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }) }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
-                                            Confirm Booking 
+                                            Confirm Booking
                                         </button>
+
                                     </div>                 
+
                                 </div>
                             ) : (
                                 <div className="mt-12 bg-neutral-800 p-6 rounded-lg shadow-lg text-center">
@@ -369,20 +402,23 @@ case "adults":
                     </div>
                 </div>
                 <Footer />
-                {bookingBool &&<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
-    <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">Continue with payment in the Profile Tab</h2>
-        <div className="flex justify-center">
-            <button
-                onClick={() => navigate("/profile")}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
-            >
-                Proceed to the Profile Tab
-            </button>
-        </div>
-    </div>
-</div>
-}
+                {bookingBool && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
+                        <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+                            <h2 className="text-3xl font-bold text-white mb-6 text-center">
+                                Continue with payment in the Profile Tab
+                            </h2>
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => navigate("/profile")}
+                                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+                                >
+                                    Proceed to the Profile Tab
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );
