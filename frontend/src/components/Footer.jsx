@@ -4,27 +4,27 @@ import { Link } from "react-router-dom";
 const Footer = () => {
 
     const resourcesLinks = [
-        { to: "/home", text: "How It Works" },
-        { to: "/home", text: "Booking Guide" },
-        { to: "/home", text: "FAQs" },
-        { to: "/home", text: "Customer Support" },
-        { to: "/home", text: "Travel Tips" },
+        { to: "/", text: "How It Works" },
+        { to: "/", text: "Booking Guide" },
+        { to: "/", text: "FAQs" },
+        { to: "/", text: "Customer Support" },
+        { to: "/", text: "Travel Tips" },
     ];
 
     const platformLinks = [
-        { to: "/home", text: "Hotel Features" },
-        { to: "/home", text: "Popular Destinations" },
-        { to: "/home", text: "Special Offers" },
-        { to: "/home", text: "Mobile App" },
-        { to: "/home", text: "Loyalty Program" },
+        { to: "/", text: "Hotel Features" },
+        { to: "/", text: "Popular Destinations" },
+        { to: "/", text: "Special Offers" },
+        { to: "/", text: "Mobile App" },
+        { to: "/", text: "Loyalty Program" },
     ];
 
     const communityLinks = [
-        { to: "/home", text: "Travel Stories" },
-        { to: "/home", text: "Customer Reviews" },
-        { to: "/home", text: "Local Events" },
-        { to: "/home", text: "Group Bookings" },
-        { to: "/home", text: "Partnership Opportunities" },
+        { to: "/", text: "Travel Stories" },
+        { to: "/", text: "Customer Reviews" },
+        { to: "/", text: "Local Events" },
+        { to: "/", text: "Group Bookings" },
+        { to: "/", text: "Partnership Opportunities" },
     ];
 
 
