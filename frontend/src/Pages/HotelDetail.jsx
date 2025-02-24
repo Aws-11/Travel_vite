@@ -238,7 +238,41 @@ case "adults":
 
 };
 
+const amountClicked2 = (num2) => {
+    setBookingDetails({ ...bookingDetails, guests_children: num2 });
 
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById(`${i}c`).style.backgroundColor = "";
+        document.getElementById(`${i}c`).style.color = "";
+    }
+
+    if (num2 >= 1 && num2 <= 5) {
+        if (bookingDetails.guests_children === num2) { 
+            setBookingDetails({ ...bookingDetails, guests_children: 0 }); 
+            return; 
+        }
+        document.getElementById(`${num2}c`).style.backgroundColor = "gray";
+        document.getElementById(`${num2}c`).style.color = "black";
+    }
+};
+
+const amountClicked3hotels = (num3) => {
+    setBookingDetails({ ...bookingDetails, booked_rooms: num3 });
+
+    for (let i = 1; i <= 3; i++) { 
+        document.getElementById(`${i}h`).style.backgroundColor = "";
+        document.getElementById(`${i}h`).style.color = "";
+    }
+
+    if (num3 >= 1 && num3 <= 3) { 
+        if (bookingDetails.booked_rooms === num3) { 
+            setBookingDetails({ ...bookingDetails, booked_rooms: null });
+            return; 
+        }
+        document.getElementById(`${num3}h`).style.backgroundColor = "gray";
+        document.getElementById(`${num3}h`).style.color = "black";
+    }
+};
 
 
     return (
@@ -325,7 +359,7 @@ case "adults":
                                             <span className="text-sm font-medium">Guests Children</span>
                                             <br />
                                             <button onClick={() => handleDecrement("children")} id="1h"  className={`px-4 py-2 border`}>-</button>
-                                            <button  id="2h" className={`px-4 py-2 border`}>{Children ? Children : setChildren(0)}</button>
+                                            <button  id="2h" className={`px-4 py-2 border`}>{Children }</button>
                                             <button onClick={() => handleIncrement('children')} id="3h" className={`px-4 py-2 border`}>+</button>
                                         </label>
                                         <label className="block">
