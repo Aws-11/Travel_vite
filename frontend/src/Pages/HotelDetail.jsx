@@ -227,7 +227,7 @@ case "adults":
     break;
     case "children":
         setChildren(prevChildren => {
-            const newChild = Math.max(0, prevChildren - 1);
+            const newChild = Math.max(1, prevChildren - 1);
             setBookingDetails(prev => ({ ...prev, guests_children: newChild }));
             return newChild;
         });
