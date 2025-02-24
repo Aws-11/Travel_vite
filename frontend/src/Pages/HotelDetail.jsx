@@ -25,7 +25,7 @@ const [selected, setSelected] = useState(null);
 const [Rooms, setRooms] = useState(0);
 const minValue = 1;
 const [Adults, setAdults] = useState(0);
-const [Children, setChildren] = useState(0);
+const [Children, setChildren] = useState(1);
     const [photos, setPhotos] = useState({}); 
 
 
@@ -140,27 +140,6 @@ const [Children, setChildren] = useState(0);
         );
     }
 
-
-
-    const amountClicked = (num) => {
-        setBookingDetails({ ...bookingDetails, guests_adults: num });
-    
-        for (let i = 1; i <= 5; i++) {
-            document.getElementById(`${i}`).style.backgroundColor = "";
-            document.getElementById(`${i}`).style.color = "";
-        }
-    
-        if (num >= 1 && num <= 5) {
-          
-            if (bookingDetails.guests_adults === num) { 
-                setBookingDetails({ ...bookingDetails, guests_adults: null }); 
-                return; 
-            }
-            document.getElementById(`${num}`).style.backgroundColor = "gray";
-            document.getElementById(`${num}`).style.color = "black";
-        }
-    };
-    
 
 
     const handleClick = () => {
