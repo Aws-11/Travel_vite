@@ -171,7 +171,7 @@ const [Children, setChildren] = useState(0);
     
         if (num2 >= 1 && num2 <= 5) {
             if (bookingDetails.guests_children === num2) { 
-                setBookingDetails({ ...bookingDetails, guests_children: null }); 
+                setBookingDetails({ ...bookingDetails, guests_children: 0 }); 
                 return; 
             }
             document.getElementById(`${num2}c`).style.backgroundColor = "gray";
