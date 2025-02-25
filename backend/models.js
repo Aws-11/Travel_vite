@@ -13,8 +13,10 @@ userdb.on('error', (err) => console.error('MongoDB connection error (Users):', e
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, maxlength: 40, minlength: 3, match: /^[a-zA-Z0-9_]+$/ },
     email: { type: String, required: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-    password: { type: String, required: true, minlength: 8 }
+    password: { type: String, required: true, minlength: 8 },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' } // Add role field with default 'user'
 });
+
 
 userSchema.pre('save', async function (next) {
     const hashedPassword = await bcrypt.hash(this.password, 10);
@@ -50,11 +52,11 @@ booking.on('error', (err) => console.error('MongoDB connection error (Bookings):
 const bookingSchema = new mongoose.Schema({
     email: { type: String, required: true },
     listingID: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing', required: true },
-    checkIn: {type: Date, required: true},
-    checkOut: {type: Date, required: true},
-    guests: {type: Number, required: true},
-    total_price: {type: Number, required: true},
-    payed: {type: Boolean, required: true}
+    checkIn: { type: Date, required: true },
+    checkOut: { type: Date, required: true },
+    guests: { type: Number, required: true },
+    total_price: { type: Number, required: true },
+    payed: { type: Boolean, required: true }
 });
 
 

@@ -9,6 +9,12 @@ import Register from './Pages/Register';
 import About from './Pages/About';
 import Contact from './Pages/Contact';
 import NotFoundPage from './Pages/NotFoundPage';
+import AdminPanel from "./Pages/AdminPanel";
+import ManageHotels from "./Pages/ManageHotels";
+import AddHotel from "./Pages/AddHotel";
+import EditHotel from './Pages/EditHotel';
+// import ManageBookings from './Pages/ManageBookings';
+
 
 function App() {
   return (
@@ -22,7 +28,13 @@ function App() {
         <Route path="/registration" element={<Register />} />
         <Route path='/about' element={<About />} />
         <Route path='/contact' element={<Contact />} />
+        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin/manage-hotels" element={<ManageHotels />} />
+        <Route path="/admin/add-hotel" element={<AddHotel />} />
+        <Route path="/admin/edit-hotel/:id" element={<EditHotel />} />
+        {/* <Route path="/admin/manage-bookings" element={<ManageBookings />} /> */}
         <Route path='*' element={<NotFoundPage />} />
+
       </Routes>
     </Router>
   );

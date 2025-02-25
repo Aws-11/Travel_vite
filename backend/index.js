@@ -32,6 +32,28 @@ app.use(session({
     }
 }))
 
+const adminAuth = async (req, res, next) => {
+    const token = req.session.token;
+
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized. Please log in." });
+    }
+
+    try {
+        const decoded = jwt.verify(token, secret_key);
+        const user = await User.findById(decoded.id);
+
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({ error: "Access denied. Admins only." });
+        }
+
+        req.user = user; // Attach user info to request
+        next();
+    } catch (error) {
+        res.status(401).json({ error: "Invalid token or session expired." });
+    }
+};
+
 
 
 app.post('/login', async (req, res) => {
@@ -46,7 +68,7 @@ app.post('/login', async (req, res) => {
         if (user && await bcrypt.compare(req.body.password, user.password)) {
 
             const token = jwt.sign(
-                { id: user._id, username: user.username, email: user.email },
+                { id: user._id, username: user.username, email: user.email, role: user.role }, // ✅ Include role in token
                 secret_key,
                 { expiresIn: '1h' }
             );
@@ -55,7 +77,11 @@ app.post('/login', async (req, res) => {
 
             res.json({
                 message: "User is logged in",
-                user: { username: user.username, email: user.email },
+                user: {
+                    username: user.username,
+                    email: user.email,
+                    role: user.role // ✅ Include role in response
+                },
                 token
             });
         } else {
@@ -68,9 +94,10 @@ app.post('/login', async (req, res) => {
 });
 
 
+
 app.post("/create-payment-intent", async (req, res) => {
     try {
-        
+
         const { amount, bookingId } = req.body;
 
         if (!amount || !bookingId) {
@@ -83,10 +110,10 @@ app.post("/create-payment-intent", async (req, res) => {
             payment_method_types: ["card"], // Correct parameter format
         });
 
-        
+
         res.json({ clientSecret: paymentIntent.client_secret });
     } catch (error) {
-       
+
         res.status(500).json({ error: "Payment processing error" });
     }
 });
@@ -107,9 +134,9 @@ app.post("/confirm-payment", async (req, res) => {
 
 
 app.post("/booking_by_id", async (req, res) => {
-    const { id } = req.body; 
+    const { id } = req.body;
     try {
-        const findbook = await Booking.findOne({ _id: id }); 
+        const findbook = await Booking.findOne({ _id: id });
 
         if (!findbook) {
             return res.status(404).json({ message: "Booking not found" });
@@ -202,18 +229,18 @@ app.post("/booking_by_email", async (req, res) => {
 
 app.post('/register', async (req, res) => {
     try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const newUser = new User({
             username: req.body.username,
             email: req.body.email,
-            password: req.body.password
-
-        })
+            password: hashedPassword
+        });
         await newUser.save();
-        res.status(201).json({ message: 'user added successfully', user: newUser })
+        res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (err) {
-        res.status(400).json({ message: 'error while creating user', error: err.message })
+        res.status(400).json({ error: err.message });
     }
-})
+});
 
 
 
@@ -298,37 +325,7 @@ app.get('/showlist', async (req, res) => {
     }
 });
 
-app.post('/createList', async (req, res) => {
-    try {
-        const newList = new Listing({
-            Listname: req.body.Listname,
-            Country: req.body.Country,
-            City: req.body.City,
-            Price: req.body.Price,
-            Rooms: req.body.Rooms,
-            Description: req.body.Description
 
-        })
-        await newList.save();
-        res.status(201).json({ message: 'Listing added successfully', user: newList })
-    } catch (err) {
-        res.status(400).json({ message: 'error while adding listing', error: err.message })
-    }
-})
-
-app.delete('/delelist', async (req, res) => {
-    const ListingId = req.body._id
-    try {
-        const delList = await Listing.deleteOne({ _id: LitsingId });
-        if (delList.deletedCount === 1) {
-            res.status(200).json({ message: 'Listing deleted successfully' })
-        } else {
-            res.status(400).json({ message: 'Listing not found' })
-        }
-    } catch (err) {
-        res.status(500).json({ message: 'error', error: err.message })
-    }
-})
 
 
 app.get("/loged", (req, res) => {
@@ -357,18 +354,15 @@ app.get('/profile', async (req, res) => {
     }
 
     try {
-
         jwt.verify(token, secret_key, async (err, decoded) => {
             if (err) {
                 return res.status(401).json({ message: "Invalid or expired token" });
             }
 
-
             const user = await User.findById(decoded.id);
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
-
 
             const bookings = await Booking.find({ email: user.email });
 
@@ -376,6 +370,7 @@ app.get('/profile', async (req, res) => {
                 user: {
                     username: user.username,
                     email: user.email,
+                    role: user.role,  // ✅ Include the role here
                     password: '********'
                 },
                 bookings
@@ -386,6 +381,7 @@ app.get('/profile', async (req, res) => {
         res.status(500).json({ message: "Server error while fetching profile data" });
     }
 });
+
 
 
 app.put('/user/update', async (req, res) => {
@@ -463,6 +459,73 @@ app.post('/bookings_by_email', async (req, res) => {
         res.status(500).json({ error: "An error occurred while fetching bookings." });
     }
 });
+
+
+
+
+
+
+app.post('/admin/add-hotel', adminAuth, async (req, res) => {
+    try {
+        const newHotel = new Listing({
+            Listname: req.body.Listname,
+            Country: req.body.Country,
+            City: req.body.City,
+            Price: req.body.Price,
+            Rooms: req.body.Rooms,
+            Description: req.body.Description
+        });
+
+        await newHotel.save();
+        res.status(201).json({ message: 'Hotel added successfully', hotel: newHotel });
+    } catch (err) {
+        res.status(400).json({ error: 'Error adding hotel', details: err.message });
+    }
+});
+
+app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
+    try {
+        const updatedHotel = await Listing.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedHotel) {
+            return res.status(404).json({ error: 'Hotel not found' });
+        }
+
+        res.status(200).json({ message: 'Hotel updated successfully', hotel: updatedHotel });
+    } catch (err) {
+        res.status(500).json({ error: 'Error updating hotel', details: err.message });
+    }
+});
+
+
+app.delete('/admin/delete-hotel/:id', adminAuth, async (req, res) => {
+    try {
+        const deletedHotel = await Listing.findByIdAndDelete(req.params.id);
+        if (!deletedHotel) return res.status(404).json({ error: 'Hotel not found' });
+        res.status(200).json({ message: 'Hotel deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Error deleting hotel', details: err.message });
+    }
+});
+
+// app.get("/admin/bookings", adminAuth, async (req, res) => {
+//     try {
+//         const bookings = await Booking.find();
+//         console.log('Bookings:', bookings); // Add this for debugging
+//         res.json(bookings);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: "Server error" });
+//     }
+// });
+
+
+
+
 
 
 
