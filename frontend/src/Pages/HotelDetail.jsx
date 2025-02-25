@@ -174,7 +174,7 @@ case "adults":
     case "children":
         setChildren(prevChildren => {
             const newChild = Math.min(maxValChildren, prevChildren + 1);
-            setBookingDetails(prev => ({ ...prev, guests_children: 0 }));
+            setBookingDetails(prev => ({ ...prev, guests_children: newChild }));
             return newChild;
         });
         break;
@@ -317,7 +317,7 @@ case "adults":
                                         </label>
                                        
                                         <button
-                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }) }}
+                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }); setBookingDetails({ ...bookingDetails, guests_children: Children }) }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
                                             Confirm Booking
