@@ -25,7 +25,7 @@ const [selected, setSelected] = useState(null);
 const [Rooms, setRooms] = useState(0);
 const minValue = 1;
 const [Adults, setAdults] = useState(0);
-const [Children, setChildren] = useState(0);
+const [Children, setChildren] = useState(-1);
     const [photos, setPhotos] = useState({}); 
 
 
@@ -87,7 +87,7 @@ const [Children, setChildren] = useState(0);
     
     const totalGuestsPrice = adults + children * 0.5;
     const totalp = hotel && hotel.Price ? dateDiff * hotel.Price * totalGuestsPrice * rooms : 0;
-    
+  
 
     const handleBooking = async () => {
         if (!isLoggedIn) {
@@ -317,7 +317,7 @@ case "adults":
                                         </label>
                                        
                                         <button
-                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }); setBookingDetails({ ...bookingDetails, guests_children: null }) }}
+                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms })}}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
                                             Confirm Booking
