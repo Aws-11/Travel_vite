@@ -218,6 +218,14 @@ case "adults":
 };
 
 
+if(!bookingDetails.guests_children){
+    setBookingDetails({
+        ...bookingDetails,
+        guests_children: 0
+    })
+}else{
+    console.log("children exist but still as null i guess")
+}
 
 
     return (
