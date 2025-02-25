@@ -15,8 +15,11 @@ const HotelDetail = () => {
     const [bookingDetails, setBookingDetails] = useState({
         checkInDate: "",
         checkOutDate: "",
-        guests: 1,
+        guests_adults: 1,
+        guests_children: 0,
+        booked_rooms: 1
     });
+    
 
 const [clicked, setClicked] = useState(false);
 const [bookingBool, setBookingBool] = useState(false);
@@ -25,7 +28,7 @@ const [selected, setSelected] = useState(null);
 const [Rooms, setRooms] = useState(0);
 const minValue = 1;
 const [Adults, setAdults] = useState(0);
-const [Children, setChildren] = useState(-1);
+const [Children, setChildren] = useState(0);
     const [photos, setPhotos] = useState({}); 
 
 
