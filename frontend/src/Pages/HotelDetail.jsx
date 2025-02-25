@@ -317,7 +317,7 @@ case "adults":
                                         </label>
                                        
                                         <button
-                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }); setBookingDetails({ ...bookingDetails, guests_children: Children }) }}
+                                            onClick={() => { handleBooking(); handleClick(); setBookingDetails({ ...bookingDetails, booked_rooms: Rooms }); setBookingDetails({ ...bookingDetails, guests_children: null }) }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
                                             Confirm Booking
