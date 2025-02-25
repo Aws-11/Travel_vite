@@ -186,29 +186,30 @@ const [showPayment, setShowPayment] = useState(false);
 
 
 
+
     const updateBooking = async (updatedBookingData) => {
         const { _id, checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price } = updatedBookingData;
-
+    
         if (!_id || !checkIn || !checkOut || guests_adults == null || guests_children == null || booked_rooms == null || total_price == null) {
             console.error("All fields are required.");
             return { error: "All fields are required." };
         }
-
+    
         try {
             const response = await fetch("https://travel-vite-backend.onrender.com/update_booking", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ _id, checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price }),
+                body: JSON.stringify({ _id, checkIn, checkOut, guests_adults, guests_children, booked_rooms, total_price }), 
             });
-
+    
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Failed to update booking:", errorData.message);
                 return { error: errorData.message };
             }
-
+    
             const result = await response.json();
             console.log("Booking updated successfully:", result.updatedBooking);
             return result.updatedBooking;
@@ -217,8 +218,7 @@ const [showPayment, setShowPayment] = useState(false);
             return { error: "Failed to update booking due to a network error." };
         }
     };
-
-
+    
 
 
 const handleCheckInChange = async (e, listingID) => {
@@ -371,77 +371,80 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
     const maxValRooms = 10;
     const minVal = 1; 
     
-    const handleIncrement = (type, booking) => {
-        const updatedBooking = { ...booking };
+ 
+    const handleIncrement = async (type, booking) => {
+        let updatedBooking = { ...booking };
+    
         switch (type) {
             case "rooms":
-                updatedBooking.booked_rooms += 1;
+                updatedBooking.booked_rooms = Math.min(maxValRooms, booking.booked_rooms + 1);
                 break;
             case "adults":
-                updatedBooking.guests_adults += 1;
+                updatedBooking.guests_adults = Math.min(20, booking.guests_adults + 1);
                 break;
             case "children":
-                updatedBooking.guests_children += 1;
+                updatedBooking.guests_children = Math.min(10, booking.guests_children + 1);
                 break;
             default:
-                break;
+                return;
         }
-        setModifiedBookings((prev) => ({ ...prev, [updatedBooking._id]: updatedBooking }));
-    };
-
-    // Handle decrement for rooms, adults, and children
-    const handleDecrement = (type, booking) => {
-        const updatedBooking = { ...booking };
-        switch (type) {
-            case "rooms":
-                updatedBooking.booked_rooms = Math.max(1, updatedBooking.booked_rooms - 1); 
-                break;
-            case "adults":
-                updatedBooking.guests_adults = Math.max(1, updatedBooking.guests_adults - 1);
-                break;
-            case "children":
-                updatedBooking.guests_children = Math.max(0, updatedBooking.guests_children - 1);
-                break;
-            default:
-                break;
-        }
-        setModifiedBookings((prev) => ({ ...prev, [updatedBooking._id]: updatedBooking }));
-    };
-
-
-    const handleUpdateBooking = async (booking) => {
-        const updatedBooking = modifiedBookings[booking._id] || booking;
-
+    
         try {
-            // Recalculate total price
-            const newTotalPrice = await calculateTotalPrice(
-                updatedBooking.checkIn,
-                updatedBooking.checkOut,
-                listingData[updatedBooking.listingID]?.Price || 0,
-                updatedBooking.guests_adults + updatedBooking.guests_children
-            );
-
-            // Update booking via API
+            const newTotalPrice = await calculateTotalPrice(updatedBooking.checkIn, updatedBooking.checkOut, listingData[booking.listingID]?.Price || 0, updatedBooking.guests_adults + updatedBooking.guests_children);
+    
             const updatedBookingData = await updateBooking({
                 ...updatedBooking,
                 total_price: newTotalPrice,
             });
-
-            // Handle success
+    
             if (!updatedBookingData.error) {
                 console.log("Booking updated successfully:", updatedBookingData);
-
-                // Update state with the new booking data
-                setBookings((prevBookings) =>
-                    prevBookings.map((b) => (b._id === booking._id ? updatedBookingData : b))
+    
+                setBookings(prevBookings =>
+                    prevBookings.map(b => (b._id === booking._id ? updatedBookingData : b))
                 );
-
-                // Clear modified booking state after update
-                setModifiedBookings((prev) => {
-                    const newState = { ...prev };
-                    delete newState[booking._id];
-                    return newState;
-                });
+    
+            } else {
+                alert("Failed to update booking.");
+            }
+        } catch (error) {
+            console.error("Error updating booking:", error);
+            alert("An error occurred while updating the booking.");
+        }
+    };
+    
+    const handleDecrement = async (type, booking) => {
+        let updatedBooking = { ...booking };
+    
+        switch (type) {
+            case "rooms":
+                updatedBooking.booked_rooms = Math.max(minVal, booking.booked_rooms - 1); 
+                break;
+            case "adults":
+                updatedBooking.guests_adults = Math.max(minVal, booking.guests_adults - 1);
+                break;
+            case "children":
+                updatedBooking.guests_children = Math.max(0, booking.guests_children - 1);
+                break;
+            default:
+                return;
+        }
+    
+        try {
+            const newTotalPrice = await calculateTotalPrice(updatedBooking.checkIn, updatedBooking.checkOut, listingData[booking.listingID]?.Price || 0, updatedBooking.guests_adults + updatedBooking.guests_children);
+    
+            const updatedBookingData = await updateBooking({
+                ...updatedBooking,
+                total_price: newTotalPrice,
+            });
+    
+            if (!updatedBookingData.error) {
+                console.log("Booking updated successfully:", updatedBookingData);
+    
+                setBookings(prevBookings =>
+                    prevBookings.map(b => (b._id === booking._id ? updatedBookingData : b))
+                );
+    
             } else {
                 alert("Failed to update booking.");
             }
@@ -451,6 +454,40 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
         }
     };
 
+    const handleUpdateBooking = async (booking) => {
+        const updatedBooking = modifiedBookings[booking._id] || booking;
+    
+        try {
+            // Recalculate total price
+            const newTotalPrice = await calculateTotalPrice(
+                updatedBooking.checkIn,
+                updatedBooking.checkOut,
+                listingData[updatedBooking.listingID]?.Price || 0,
+                updatedBooking.guests_adults + updatedBooking.guests_children
+            );
+    
+            // Update booking via API
+            const updatedBookingData = await updateBooking({
+                ...updatedBooking,
+                total_price: newTotalPrice,
+            });
+    
+            // Handle success
+            if (!updatedBookingData.error) {
+                console.log("Booking updated successfully:", updatedBookingData);
+                // Update state with the new booking data
+                setBookings((prevBookings) =>
+                    prevBookings.map((b) => (b._id === booking._id ? updatedBookingData : b))
+                );
+            } else {
+                alert("Failed to update booking.");
+            }
+        } catch (error) {
+            console.error("Error updating booking:", error);
+            alert("An error occurred while updating the booking.");
+        }
+    };
+    
 
     useEffect(() => {
         const fetchPhotos = async () => {
@@ -493,8 +530,8 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                 <div className="container mx-auto p-6">
                     <h1 className="text-4xl font-bold text-center mb-6">Your Profile</h1>
                     {message && <p className="text-red-500 text-center">{message}</p>}
-    
-                    <form onSubmit={(e) => { handleSubmit(e); handleRestart(e) }} className="bg-neutral-800 p-6 rounded shadow-md max-w-lg mx-auto">
+
+                    <form onSubmit={(e) => { handleSubmit(e); handleRestart(e)}} className="bg-neutral-800 p-6 rounded shadow-md max-w-lg mx-auto">
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium text-white">Email:</label>
                             <input
@@ -519,7 +556,7 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                         </div>
                         <button type="submit" className="w-full bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Profile</button>
                     </form>
-    
+
                     <h2 className="text-3xl font-semibold text-white mt-12 mb-6">Your Bookings</h2>
                     {bookings.length > 0 ? (
                         <ul className="space-y-6">
@@ -528,110 +565,104 @@ const calculateTotalPrice = (checkInDate, checkOutDate, pricePerNight, numberGue
                                     <div className="flex-1">
                                         <h3 className="text-xl font-semibold text-white">Hotel Name: {listingData[booking.listingID]?.Listname || "Loading..."}</h3>
                                         <p className="text-sm text-gray-400"><strong>Booking ID:</strong> {booking._id}</p>
-    
+
                                         <div className="my-4">
                                             <p><strong>Check-in:</strong></p>
-                                            {!booking.payed ? (
-                                                <input
+                                              { !booking.payed ?  <input
                                                     type="date"
                                                     value={formatDate(booking.checkIn)}
                                                     onChange={(e) => handleCheckInChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
-                                                />
-                                            ) : (
-                                                <p>{formatDate(booking.checkIn)}</p>
-                                            )}
-    
-                                            <p><strong>Check-out:</strong></p>
-                                            {!booking.payed ? (
-                                                <input
+                                                /> : <p>  {formatDate(booking.checkIn)}</p> }
+                                            
+                                            <p><strong>Check-out:</strong> </p>
+                                                {  !booking.payed ?  <input
                                                     type="date"
                                                     value={formatDate(booking.checkOut)}
                                                     onChange={(e) => handleCheckOutChange(e, booking.listingID)}
                                                     className="mt-2 p-2 border border-gray-600 rounded bg-neutral-700 text-white"
-                                                />
-                                            ) : (
-                                                <p>{formatDate(booking.checkOut)}</p>
-                                            )}
-    
+                                                />  : <p>  {formatDate(booking.checkOut)}</p> }
+                                           
+                                        
                                             {!booking.payed ? (
                                                 <>
                                                     <label className="block">
-                                                        <span className="text-sm font-medium">Guests Adults</span><br />
-                                                        <button onClick={() => handleDecrement("adults", booking)} className="px-4 py-2 border">-</button>
-                                                        <button className="px-4 py-2 border">{booking.guests_adults}</button>
-                                                        <button onClick={() => handleIncrement("adults", booking)} className="px-4 py-2 border">+</button>
-                                                    </label>
-    
-                                                    <label className="block">
-                                                        <span className="text-sm font-medium">Guests Children</span><br />
-                                                        <button onClick={() => handleDecrement("children", booking)} className="px-4 py-2 border">-</button>
-                                                        <button className="px-4 py-2 border">{booking.guests_children}</button>
-                                                        <button onClick={() => handleIncrement("children", booking)} className="px-4 py-2 border">+</button>
-                                                    </label>
-    
-                                                    <label className="block">
-                                                        <span className="text-sm font-medium">Rooms</span><br />
-                                                        <button onClick={() => handleDecrement("rooms", booking)} className="px-4 py-2 border">-</button>
-                                                        <button className="px-4 py-2 border">{booking.booked_rooms}</button>
-                                                        <button onClick={() => handleIncrement("rooms", booking)} className="px-4 py-2 border">+</button>
-                                                    </label>
+                                                    <span className="text-sm font-medium">Guests Adults</span><br />
+                                                    <button onClick={() => handleDecrement("adults", booking)} className="px-4 py-2 border">-</button>
+                                                    <button className="px-4 py-2 border">{booking.guests_adults}</button>
+                                                    <button onClick={() => handleIncrement("adults", booking)} className="px-4 py-2 border">+</button>
+                                                </label>
+
+                                                <label className="block">
+                                                    <span className="text-sm font-medium">Guests Children</span><br />
+                                                    <button onClick={() => handleDecrement("children", booking)} className="px-4 py-2 border">-</button>
+                                                    <button className="px-4 py-2 border">{booking.guests_children}</button>
+                                                    <button onClick={() => handleIncrement("children", booking)} className="px-4 py-2 border">+</button>
+                                                </label>
+
+                                                <label className="block">
+                                                    <span className="text-sm font-medium">Rooms</span><br />
+                                                    <button onClick={() => handleDecrement("rooms", booking)} className="px-4 py-2 border">-</button>
+                                                    <button className="px-4 py-2 border">{booking.booked_rooms}</button>
+                                                    <button onClick={() => handleIncrement("rooms", booking)} className="px-4 py-2 border">+</button>
+                                                </label>
                                                 </>
                                             ) : (
-                                                ""
+                                                 "" 
+                                                
                                             )}
-    
-                                            {booking.payed && (
-                                                <>
-                                                    <p>Adults: {booking.guests_adults}</p>
-                                                    {booking.guests_children ? <p>Children: {booking.guests_children}</p> : null}
-                                                    <p>Rooms: {booking.booked_rooms}</p>
-                                                </>
-                                            )}
+
+                                                {booking.payed ? (
+                                                    <>
+                                                        <p>Adults: {booking.guests_adults}</p>
+                                                        {booking.guests_children ? <p>Children: {booking.guests_children}</p> : null}
+                                                        <p>Rooms: {booking.booked_rooms}</p>
+                                                    </>
+                                                ) : null}              
                                             <p><strong>Price for one night:</strong> {listingData[booking.listingID]?.Price}</p>
                                             <p><strong>Total Price:</strong> <strong>€{booking.total_price}</strong></p>
                                         </div>
-    
+
                                         <div className="flex space-x-4">
-                                            {!booking.payed && <button onClick={handleRestart2} className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Data</button>}
-                                            {!booking.payed && <button onClick={() => deleteBooking(booking._id)} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Booking</button>}
+                                            {  !booking.payed && <button onClick={handleRestart2} className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">Update Data</button>}
+                                           {  !booking.payed && <button onClick={() => deleteBooking(booking._id)} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Booking</button> }
                                             {!booking.payed && (
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedBookingId(booking._id);
-                                                        setShowPayment(true);
-                                                    }}
-                                                    className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                                    Pay
-                                                </button>
-                                            )}
-    
-                                            <button className="bg-green-500 text-white"> {booking.payed && "Paid"} </button>
-                                            {booking.payed && (
-                                                <div>
-                                                    <QRCodeSVG
-                                                        level="Q"
-                                                        style={{ width: 126 }}
-                                                        value={JSON.stringify({
-                                                            bookingID: booking._id,
-                                                            bookingcheckIn: booking.checkIn,
-                                                            bookingcheckOut: booking.checkOut,
-                                                            bookingguests: booking.guests,
-                                                            bookingtotal_price: booking.total_price,
-                                                            bookingPayed: booking.payed,
-                                                            info: "Show this QR to the hotel staff",
-                                                        })}
-                                                    />
-                                                    <p>Provide this QR code to the hotel staff</p>
-                                                </div>
-                                            )}
+                                                             <button
+                                                            onClick={() => {
+                                                                setSelectedBookingId(booking._id);
+                                                                setShowPayment(true);
+                                                                }}
+                                                                className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                                                                Pay
+                                                            </button>
+                                                            )}
+
+                                            <button className="bg-green-500 text-white"> {booking.payed && "payed"} </button>
+                                           {  booking.payed && <div>
+                                                <QRCodeSVG
+                                                level="Q"
+                                                style={{ width: 126 }}
+                                                value={JSON.stringify({
+                                                    bookingID: booking._id,
+                                                    bookingcheckIn: booking.checkIn,
+                                                    bookingcheckOut: booking.checkOut,
+                                                    bookingguests: booking.guests,
+                                                    bookingtotal_price: booking.total_price,
+                                                    bookingPayed: booking.payed,
+                                                    info: "show this qr to the hotel staff"
+                                                })}/> <p>Provide this QR code to the hotel staff</p></div>
+                                                }
+
+                                            
                                         </div>
+                                                
                                     </div>
-    
+                                           
                                     <img
-                                        src={photos[booking.listingID] ? photos[booking.listingID] : 'fallback_image_url'}
-                                        className="rounded-lg shadow-lg max-w-full max-h-[500px] object-cover mx-auto"
+                                            src={photos[booking.listingID] ? photos[booking.listingID] : 'fallback_image_url'}
+                                            className="rounded-lg shadow-lg max-w-full max-h-[500px] object-cover mx-auto"
                                     />
+
                                 </li>
                             ))}
                         </ul>
