@@ -263,10 +263,10 @@ app.post('/fetchbasedonid', async (req, res) => {
 });
 
 
-app.delete('/users', async (req, res) => {
-    const userName = req.body.name
+app.delete('/admin/userdel/:id', async (req, res) => {
+    const id = req.params.id
     try {
-        const delUser = await User.deleteOne({ name: userName });
+        const delUser = await User.deleteOne({ _id: id });
         if (delUser.deletedCount === 1) {
             res.status(200).json({ message: 'user deleted successfully' })
         } else {
@@ -325,6 +325,17 @@ app.get('/showlist', async (req, res) => {
     }
 });
 
+
+app.get('/showbook', async (req, res) => {
+
+    try {
+        const books = await Booking.find();
+
+        res.status(200).json(books)
+    } catch (err) {
+        res.status(500).json({ message: 'error while fetching', error: err.message })
+    }
+});
 
 
 
@@ -501,6 +512,17 @@ app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
     }
 });
 
+app.get('/showlist/:id', async (req, res) => {
+
+const id = req.params.id
+    try {
+        const data = await Listing.findOne({ _id: id});
+
+        res.status(200).json(data)
+    } catch (err) {
+        res.status(500).json({ message: 'error while fetching', error: err.message })
+    }
+});
 
 app.delete('/admin/delete-hotel/:id', adminAuth, async (req, res) => {
     try {
@@ -512,16 +534,26 @@ app.delete('/admin/delete-hotel/:id', adminAuth, async (req, res) => {
     }
 });
 
-// app.get("/admin/bookings", adminAuth, async (req, res) => {
-//     try {
-//         const bookings = await Booking.find();
-//         console.log('Bookings:', bookings); // Add this for debugging
-//         res.json(bookings);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: "Server error" });
-//     }
-// });
+app.delete('/admin/delete-book/:id', adminAuth, async (req, res) => {
+    try {
+        const deletedHotel = await Booking.findByIdAndDelete(req.params.id);
+        if (!deletedHotel) return res.status(404).json({ error: 'Booking not found' });
+        res.status(200).json({ message: 'Booking deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Error deleting booking', details: err.message });
+    }
+});
+
+app.get("/admin/bookings", adminAuth, async (req, res) => {
+    try {
+        const bookings = await Booking.find();
+        console.log('Bookings:', bookings); // Add this for debugging
+        res.json(bookings);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 
 
