@@ -13,6 +13,8 @@ import AdminPanel from "./Pages/AdminPanel";
 import ManageHotels from "./Pages/ManageHotels";
 import AddHotel from "./Pages/AddHotel";
 import EditHotel from './Pages/EditHotel';
+import ManageBookings from './Pages/ManageBookings';
+import ManageUsers from './Pages/ManageUsers';
 // import ManageBookings from './Pages/ManageBookings';
 
 
@@ -30,6 +32,8 @@ function App() {
         <Route path='/contact' element={<Contact />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/admin/manage-hotels" element={<ManageHotels />} />
+        <Route path="/admin/manage-bookings" element={<ManageBookings />} />
+        <Route path="/admin/manage-users" element={<ManageUsers />} />
         <Route path="/admin/add-hotel" element={<AddHotel />} />
         <Route path="/admin/edit-hotel/:id" element={<EditHotel />} />
         {/* <Route path="/admin/manage-bookings" element={<ManageBookings />} /> */}
