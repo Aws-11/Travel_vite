@@ -23,16 +23,16 @@ const Login = () => {
   const handleSignUpBtn = () => {
     navigate('/registration');
   };
-
   const handleLogin = async () => {
     const url = `http://localhost:3000/login`;
     try {
       if (user.identifier && user.password) {
         const { data } = await axios.post(url, user, { withCredentials: true });
-
-        if (data.user) {
+  
+        if (data.user && data.token) {  // Check if both user and token are present
           toast.success('Login successful!');
-          sessionStorage.setItem("user", JSON.stringify(data.user));
+          sessionStorage.setItem("user", JSON.stringify(data.user));  // Store user data
+          sessionStorage.setItem("token", data.token);  // Store token
           setUser(initialUser);
           setErrorMessage('');
           navigate('/');
@@ -52,6 +52,7 @@ const Login = () => {
       }
     }
   };
+  
 
   return (
     <>

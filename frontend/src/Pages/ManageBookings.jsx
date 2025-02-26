@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from '../components/SideBar';
-
-
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 const ManageBookings = () => {
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(false);
     const [input, setInput]=useState("");
+    const storedUser = JSON.parse(sessionStorage.getItem("user"));
+     const navigate = useNavigate();
     // Fetch hotels
     useEffect(() => {
         fetchBookings();
     }, []);
+
+    // if (!storedUser || storedUser.role !== "admin") {
+    //     navigate("/");
+    // }
+    
 
     const fetchBookings = async () => {
         try {

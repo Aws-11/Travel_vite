@@ -16,7 +16,7 @@ app.use(bodyparser.json());
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
-    secure: true
+    secure: false
 }));
 
 
@@ -25,12 +25,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
     resave: false,
     secret: process.env.SESSION_SECRET,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
         maxAge: 1000 * 60 * 60,
         secure: false
     }
 }))
+
+
+
 
 const adminAuth = async (req, res, next) => {
     const token = req.session.token;
@@ -74,6 +77,8 @@ app.post('/login', async (req, res) => {
             );
 
             req.session.token = token;
+
+
 
             res.json({
                 message: "User is logged in",
@@ -263,7 +268,7 @@ app.post('/fetchbasedonid', async (req, res) => {
 });
 
 
-app.delete('/admin/userdel/:id', async (req, res) => {
+app.delete('/admin/userdel/:id', adminAuth,async (req, res) => {
     const id = req.params.id
     try {
         const delUser = await User.deleteOne({ _id: id });
@@ -315,6 +320,8 @@ app.get('/hotels/:id', async (req, res) => {
 });
 
 app.get('/showlist', async (req, res) => {
+    
+    
 
     try {
         const users = await Listing.find();
@@ -326,9 +333,13 @@ app.get('/showlist', async (req, res) => {
 });
 
 
-app.get('/showbook', async (req, res) => {
 
-    try {
+
+
+
+app.get('/showbook',async (req, res) => {
+
+try {
         const books = await Booking.find();
 
         res.status(200).json(books)
@@ -336,6 +347,19 @@ app.get('/showbook', async (req, res) => {
         res.status(500).json({ message: 'error while fetching', error: err.message })
     }
 });
+
+app.get("/admin/bookings", adminAuth, async (req, res) => {
+    try {
+        const bookings = await Booking.find();
+        console.log('Bookings:', bookings); // Add this for debugging
+        res.json(bookings);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+
 
 
 
@@ -544,16 +568,7 @@ app.delete('/admin/delete-book/:id', adminAuth, async (req, res) => {
     }
 });
 
-app.get("/admin/bookings", adminAuth, async (req, res) => {
-    try {
-        const bookings = await Booking.find();
-        console.log('Bookings:', bookings); // Add this for debugging
-        res.json(bookings);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
-    }
-});
+
 
 
 
@@ -566,9 +581,11 @@ app.get("/admin/bookings", adminAuth, async (req, res) => {
 
 
 app.get("/logout", (req, res) => {
-    req.session.destroy()
-    res.send({ message: "successfully logged out" })
-})
+    req.session.destroy(() => {
+        res.clearCookie("connect.sid"); 
+        res.send({ message: "Successfully logged out" });
+    });
+});
 
 
 

@@ -5,7 +5,7 @@ const Sidebar = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        
+        sessionStorage.removeItem("token");
         sessionStorage.removeItem("user");
         navigate("/");
     };
