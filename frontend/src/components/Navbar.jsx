@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { Menu, X } from "lucide-react";
-
+import axios from "axios";
 const Navbar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+    const storedUser = JSON.parse(sessionStorage.getItem("user"));
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -14,17 +15,24 @@ const Navbar = () => {
         setIsLoggedIn(!!user);
     }, []);
 
-    const handleLogout = () => {
-        // Clear sessionStorage and navigate to home
-        sessionStorage.removeItem("user");
-        setIsLoggedIn(false);
-        navigate("/");
-    };
+    const handleLogout = async () => {
+        try {
+          await axios.get('http://localhost:3000/logout', { withCredentials: true }); // Call backend to destroy session
+          sessionStorage.removeItem("user"); // Remove user data
+          sessionStorage.removeItem("token"); // Remove token
+         setIsLoggedIn(false) // Redirect to login page
+         navigate("/")
+        } catch (error) {
+          console.error("Logout failed:", error);
+        }
+      };
+      
 
     const MenuItems = [
         { title: "Home", url: "/", },
         { title: "About", url: "/about", },
         { title: "Contact", url: "/contact", },
+        
 
     ];
 
@@ -62,6 +70,15 @@ const Navbar = () => {
                                 </Link>
                             </li>
                         )}
+
+                            {storedUser?.role === "admin" && (
+                                <li className="pb-4"> {/* Add bottom padding */}
+                                    <Link to="/admin" className="nav-links px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 transition">
+                                        Admin Dashboard
+                                    </Link>
+                                </li>
+                            )}
+
                     </ul>
 
                     {/* Desktop Authentication Links */}
@@ -87,7 +104,6 @@ const Navbar = () => {
                             </button>
                         )}
                     </div>
-
                     {/* Mobile Menu Toggle */}
                     <div className="lg:hidden md:flex flex-col justify-end">
                         <button onClick={toggleNavbar}>
@@ -115,6 +131,15 @@ const Navbar = () => {
                                     </Link>
                                 </li>
                             )}
+
+                            {storedUser?.role === "admin" && (
+                                <li className="pb-4 "> {/* Add bottom padding */}
+                                    <Link to="/admin" className="nav-links px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 transition">
+                                        Admin Dashboard
+                                    </Link>
+                                </li>
+                            )}
+
                         </ul>
                         <div className="flex space-x-6">
                             {!isLoggedIn ? (

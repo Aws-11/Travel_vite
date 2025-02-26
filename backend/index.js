@@ -78,7 +78,6 @@ app.post('/login', async (req, res) => {
 
             req.session.token = token;
 
-            console.log("Session token:", req.session.token); // Check if the token is being set correctly
 
 
             res.json({
