@@ -4,14 +4,27 @@ import { useParams, useNavigate } from "react-router-dom";
 const EditHotel = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [hotel, setHotel] = useState({ Listname: "", Country: "", City: "", Price: "", Rooms: "", Description: "" });
+    const [hotel, setHotel] = useState({
+        Listname: "",
+        Country: "",
+        City: "",
+        Price: "",
+        Rooms: "",
+        Description: "",
+        AvailableFrom: "",
+        AvailableTo: ""
+    });
 
     useEffect(() => {
         const fetchHotel = async () => {
             try {
                 const response = await fetch(`http://localhost:3000/showlist/${id}`);
                 const data = await response.json();
-                setHotel(data);
+                setHotel({
+                    ...data,
+                    AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0], // Format the date to match input type="date"
+                    AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0] // Format the date to match input type="date"
+                });
             } catch (error) {
                 console.error("Error fetching hotel:", error);
             }
@@ -55,8 +68,34 @@ const EditHotel = () => {
                 <input type="number" name="Price" value={hotel.Price} onChange={handleChange} className="border p-2 w-full" placeholder="Price" required />
                 <input type="number" name="Rooms" value={hotel.Rooms} onChange={handleChange} className="border p-2 w-full" placeholder="Rooms" required />
                 <textarea name="Description" value={hotel.Description} onChange={handleChange} className="border p-2 w-full" placeholder="Description" required />
-                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-md">Update Hotel</button>
-            </form>
+                
+                {/* Available From Date */}
+                <input
+                    type="date"
+                    name="AvailableFrom"
+                    value={hotel.AvailableFrom}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    required
+                />
+
+                {/* Available To Date */}
+                <input
+                    type="date"
+                    name="AvailableTo"
+                    value={hotel.AvailableTo}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    required
+                />
+
+                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-md">
+                    Update Hotel
+                </button>
+
+             
+            </form>  
+           
         </div>
     );
 };
