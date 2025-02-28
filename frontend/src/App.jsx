@@ -25,14 +25,19 @@ function App() {
         <Route path="/hotels" element={<Hotels />} />
         <Route path="/hotels/:id" element={<HotelDetail />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<ProfilePage />} />
+       
         <Route path="/registration" element={<Register />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/admin" element={<AdminPanel />} />
-
+        
+        {storedUser ?  ( 
+          <Route path="/profile" element={<ProfilePage />} />
+        
+        ) : <Route path="*" element={<Navigate to="/" />} /> }
+        
         {storedUser?.role === "admin" && (
           <>
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin/manage-hotels" element={<ManageHotels />} />
             <Route path="/admin/manage-bookings" element={<ManageBookings />} />
             <Route path="/admin/manage-users" element={<ManageUsers />} />
@@ -40,9 +45,7 @@ function App() {
             <Route path="/admin/edit-hotel/:id" element={<EditHotel />} />
           </>
         )}
-
-        <Route path="*" element={<Navigate to="/" />} />
-
+          <Route path="*" element={<Navigate to="/" />} />      
         
       </Routes>
     </Router>

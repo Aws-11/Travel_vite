@@ -36,6 +36,7 @@ const Login = () => {
           setUser(initialUser);
           setErrorMessage('');
           navigate('/');
+          window.location.reload()
         } else {
           setErrorMessage('Invalid login credentials!');
         }

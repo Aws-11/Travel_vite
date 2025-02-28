@@ -502,13 +502,17 @@ app.post('/bookings_by_email', async (req, res) => {
 
 app.post('/admin/add-hotel', adminAuth, async (req, res) => {
     try {
+        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo } = req.body;
+
         const newHotel = new Listing({
-            Listname: req.body.Listname,
-            Country: req.body.Country,
-            City: req.body.City,
-            Price: req.body.Price,
-            Rooms: req.body.Rooms,
-            Description: req.body.Description
+            Listname,
+            Country,
+            City,
+            Price,
+            Rooms,
+            Description,
+            AvailableFrom: new Date(AvailableFrom),  
+            AvailableTo: new Date(AvailableTo),     
         });
 
         await newHotel.save();
@@ -518,12 +522,23 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
     }
 });
 
+
 app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
     try {
+        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo } = req.body;
         const updatedHotel = await Listing.findByIdAndUpdate(
             req.params.id,
-            req.body,
-            { new: true, runValidators: true }
+            {
+                Listname,
+                Country,
+                City,
+                Price,
+                Rooms,
+                Description,
+                AvailableFrom: new Date(AvailableFrom),
+                AvailableTo: new Date(AvailableTo)
+            },
+            { new: true } // To return the updated hotel object
         );
 
         if (!updatedHotel) {
@@ -532,9 +547,11 @@ app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
 
         res.status(200).json({ message: 'Hotel updated successfully', hotel: updatedHotel });
     } catch (err) {
-        res.status(500).json({ error: 'Error updating hotel', details: err.message });
+        res.status(400).json({ error: 'Error updating hotel', details: err.message });
     }
 });
+
+
 
 app.get('/showlist/:id', async (req, res) => {
 
@@ -547,6 +564,8 @@ const id = req.params.id
         res.status(500).json({ message: 'error while fetching', error: err.message })
     }
 });
+
+
 
 app.delete('/admin/delete-hotel/:id', adminAuth, async (req, res) => {
     try {
