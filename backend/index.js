@@ -507,8 +507,17 @@ app.put('/user/update', async (req, res) => {
 
 app.post('/admin/add-hotel', adminAuth, async (req, res) => {
     try {
+        console.log("Backend received request body:", req.body);
         const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, images } = req.body;
 
+        if (!req.body.images || !Array.isArray(images)) {
+            return res.status(400).json({ error: 'images must be an array' });
+        }
+        for(let image of images){
+            if(typeof image !== 'string'){
+                return res.status(400).json({error:"image url must be a string"})
+            }
+        }
 
         const newHotel = new Listing({
             Listname,
@@ -519,16 +528,16 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
             Description,
             AvailableFrom: new Date(AvailableFrom),
             AvailableTo: new Date(AvailableTo),
-            images,  // Store image URLs as an array
+            images,
         });
 
         await newHotel.save();
         res.status(201).json({ message: 'Hotel added successfully', hotel: newHotel });
     } catch (err) {
+        console.log("Backend Error:", err);
         res.status(400).json({ error: 'Error adding hotel', details: err.message });
     }
 });
-
 
 
 
