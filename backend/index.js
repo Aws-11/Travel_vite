@@ -536,9 +536,8 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
 
 app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
     try {
-        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, Images } = req.body;
+        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, images } = req.body; // Use images lowercase
 
-        // Find and update the hotel with the new details, including the Images array (if provided)
         const updatedHotel = await Listing.findByIdAndUpdate(
             req.params.id,
             {
@@ -550,9 +549,9 @@ app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
                 Description,
                 AvailableFrom: new Date(AvailableFrom),
                 AvailableTo: new Date(AvailableTo),
-                images: Images && Images.length ? Images : undefined // Only update if Images is provided
+                images: images && images.length ? images : undefined // Use images lowercase
             },
-            { new: true } // To return the updated hotel object
+            { new: true }
         );
 
         if (!updatedHotel) {

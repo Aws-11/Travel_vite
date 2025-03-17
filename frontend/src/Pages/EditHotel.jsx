@@ -13,7 +13,7 @@ const EditHotel = () => {
         Description: "",
         AvailableFrom: "",
         AvailableTo: "",
-        Images: [] // Ensure Images is always an array
+        images: [] 
     });
 
     useEffect(() => {
@@ -23,7 +23,7 @@ const EditHotel = () => {
                 const data = await response.json();
                 setHotel({
                     ...data,
-                    images: data.images || [], // Ensure Images is always an array
+                    Images: data.images || [], 
                     AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0], // Format the date
                     AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0] // Format the date
                 });
@@ -39,11 +39,12 @@ const EditHotel = () => {
     };
 
     const handleImageChange = (e) => {
-        setHotel({ ...hotel, images: e.target.value.split(",") }); // Update the Images array
+        setHotel({ ...hotel, images: e.target.value.split(",") });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(hotel)
         try {
             const response = await fetch(`http://localhost:3000/admin/edit-hotel/${id}`, {
                 method: "PUT",
@@ -54,7 +55,7 @@ const EditHotel = () => {
 
             if (response.ok) {
                 alert("Hotel updated successfully!");
-                navigate("/admin/manage-hotels");
+                // navigate("/admin/manage-hotels");
             } else {
                 const data = await response.json();
                 alert("Error updating hotel: " + data.error);
@@ -63,6 +64,7 @@ const EditHotel = () => {
             console.error("Error updating hotel:", error);
         }
     };
+
 
     return (
         <div className="max-w-lg mx-auto mt-10 p-6 border rounded-md shadow-md">
@@ -147,7 +149,7 @@ const EditHotel = () => {
                 <input
                     type="text"
                     name="Images"
-                    value={hotel.images} // Show the image URLs as a comma-separated string
+                    value={hotel.images ? hotel.images.join(",") : ""} // Add conditional check
                     onChange={handleImageChange}
                     className="border p-2 w-full"
                     placeholder="Image URLs (comma-separated)"
