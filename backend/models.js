@@ -18,12 +18,6 @@ const userSchema = new mongoose.Schema({
 });
 
 
-userSchema.pre('save', async function (next) {
-    const hashedPassword = await bcrypt.hash(this.password, 10);
-    this.password = hashedPassword;
-    next();
-});
-
 const User = userdb.model('User', userSchema);
 
 const listingdb = mongoose.createConnection(process.env.MODEL_LISTING);

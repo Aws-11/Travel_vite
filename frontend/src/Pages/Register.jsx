@@ -22,9 +22,16 @@ const Register = () => {
   const handleRegister = async () => {
     if (user.password !== user.confirmPassword) {
       console.error("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
-
+  
+    if (user.password.length < 8) {
+      console.error("Password must be at least 8 characters long!");
+      toast.error("Password must be at least 8 characters long!");
+      return;
+    }
+  
     const url = `http://localhost:3000/register`;
     try {
       const { data } = await axios.post(url, {
@@ -39,7 +46,7 @@ const Register = () => {
       toast.error('Registration failed. Please try again!');
     }
   };
-
+  
   return (
     <>
       <Navbar />
