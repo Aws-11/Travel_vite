@@ -27,7 +27,7 @@ const Login = () => {
     const url = `http://localhost:3000/login`;
     try {
       if (user.identifier && user.password) {
-        const { data } = await axios.post(url, user, { withCredentials: true });
+        const { data } = await axios.post(url, user, { withCredentials: true});
   
         if (data.user && data.token) {  // Check if both user and token are present
           toast.success('Login successful!');

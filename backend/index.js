@@ -16,7 +16,7 @@ app.use(bodyparser.json());
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
-    secure: false
+    secure: true
 }));
 
 
@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
     resave: false,
     secret: process.env.SESSION_SECRET,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
         maxAge: 1000 * 60 * 60,
         secure: false
@@ -61,6 +61,7 @@ const adminAuth = async (req, res, next) => {
 
 app.post('/login', async (req, res) => {
     try {
+        // Look for the user based on the identifier (username or email)
         const user = await User.findOne({
             $or: [
                 { username: req.body.identifier },
@@ -68,35 +69,72 @@ app.post('/login', async (req, res) => {
             ]
         });
 
-        if (user && await bcrypt.compare(req.body.password, user.password)) {
+       
+        if (user) {
+           
 
-            const token = jwt.sign(
-                { id: user._id, username: user.username, email: user.email, role: user.role }, // ✅ Include role in token
-                secret_key,
-                { expiresIn: '1h' }
-            );
+            // bcrypt.compare will check if the entered password matches the stored hash
+            const isMatch = await bcrypt.compare(req.body.password, user.password);
+           
 
-            req.session.token = token;
+            if (isMatch) {
+                // If passwords match, proceed to generate a JWT token
+              
 
+                const token = jwt.sign(
+                    { id: user._id, username: user.username, email: user.email, role: user.role },
+                    secret_key,
+                    { expiresIn: '1h' }
+                );
 
+                req.session.token = token; // Store token in the session
+                console.log('Session Token Set:', req.session.token);
 
-            res.json({
-                message: "User is logged in",
-                user: {
-                    username: user.username,
-                    email: user.email,
-                    role: user.role // ✅ Include role in response
-                },
-                token
-            });
+                res.json({
+                    message: "User is logged in",
+                    user: { username: user.username, email: user.email, role: user.role },
+                    token
+                });
+            } else {
+                res.status(401).send('Invalid login credentials');
+            }
         } else {
-            res.status(401).send('Invalid login credentials');
+            res.status(401).send('User not found');
         }
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).send('Server Error');
     }
 });
+
+
+
+
+app.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+       if(password.length < 8){
+              return res.status(400);
+       }
+        // Hash the password before storing it in the database
+        const hashedPassword = await bcrypt.hash(password, 10);
+      
+
+        const newUser = new User({
+            username,
+            email,
+            password: hashedPassword, // Ensure the hashed password is stored
+        });
+
+        // Save the new user
+        await newUser.save();
+        res.status(201).json({ message: 'User registered successfully', user: newUser });
+    } catch (err) {
+        console.error('Error in Registration:', err);
+        res.status(400).json({ error: err.message });
+    }
+});
+
 
 
 
@@ -228,22 +266,6 @@ app.post("/booking_by_email", async (req, res) => {
 
         console.error("Error finding bookings:", err);
         res.status(400).json({ message: "Error fetching bookings" });
-    }
-});
-
-
-app.post('/register', async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const newUser = new User({
-            username: req.body.username,
-            email: req.body.email,
-            password: hashedPassword
-        });
-        await newUser.save();
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
     }
 });
 
