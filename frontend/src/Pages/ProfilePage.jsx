@@ -493,36 +493,7 @@ const ProfilePage = () => {
     };
     
 
-    useEffect(() => {
-        const fetchPhotos = async () => {
-            if (!bookings || bookings.length === 0) {
-                return;
-            }
-    
-            try {
-                
-                for (const booking of bookings) {
-                    const listingID = booking.listingID;
-                    if (listingID) {
-                        const response = await fetch(`https://travel-vite-backend.onrender.com/photos/${listingID}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            setPhotos((prevPhotos) => ({
-                                ...prevPhotos,
-                                [listingID]: data.length > 0 ? data[0].URL : "",
-                            }));
-                        } else {
-                            console.error("Failed to fetch photos for hotel", listingID);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching photos:", error);
-            }
-        };
-    
-        fetchPhotos();
-    }, [bookings]);
+   
 
 
 

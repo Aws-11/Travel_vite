@@ -264,7 +264,7 @@ app.get('/users', async (req, res) => {
     }
 });
 
-app.post("/booking_by_email", async (req, res) => {
+app.post("/bookings_by_email", async (req, res) => {
     const email = req.body.email;
     try {
 
