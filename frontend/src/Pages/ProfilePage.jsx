@@ -636,7 +636,7 @@ const ProfilePage = () => {
                                     </div>
 
                                     <img
-                                        src={listingData[booking.listingID]?.Images?.[0] }
+                                        src={listingData[booking.listingID]?.images?.[0] }
                                         alt={listingData[booking.listingID]?.Listname || "Hotel"}
                                         className="rounded-lg shadow-lg max-w-full max-h-[500px] object-cover mx-auto"
                                     />
