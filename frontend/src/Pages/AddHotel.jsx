@@ -64,8 +64,6 @@ const AddHotel = () => {
                     AvailableTo: "",
                     images: []
                 });
-            } else {
-                alert("Failed to add hotel");
             }
         } catch (error) {
             console.error("Error adding hotel:", error);

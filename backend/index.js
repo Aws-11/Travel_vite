@@ -526,7 +526,7 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
         res.status(201).json({ message: 'Hotel added successfully', hotel: newHotel });
     } catch (err) {
         console.log("Backend Error:", err);
-        res.status(400).json({ error: 'Error adding hotel', details: err.message });
+        res.status(410).json({ error: 'Error adding hotel', details: err.message });
     }
 });
 
