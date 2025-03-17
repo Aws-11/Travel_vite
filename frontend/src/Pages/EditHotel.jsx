@@ -23,7 +23,7 @@ const EditHotel = () => {
                 const data = await response.json();
                 setHotel({
                     ...data,
-                    Images: data.Images || [], // Ensure Images is always an array
+                    images: data.images || [], // Ensure Images is always an array
                     AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0], // Format the date
                     AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0] // Format the date
                 });
@@ -39,7 +39,7 @@ const EditHotel = () => {
     };
 
     const handleImageChange = (e) => {
-        setHotel({ ...hotel, Images: e.target.value.split(",").map((url) => url.trim()) }); // Update the Images array
+        setHotel({ ...hotel, images: e.target.value.split(",") }); // Update the Images array
     };
 
     const handleSubmit = async (e) => {
@@ -147,7 +147,7 @@ const EditHotel = () => {
                 <input
                     type="text"
                     name="Images"
-                    value={hotel.Images.join(", ")} // Show the image URLs as a comma-separated string
+                    value={hotel.images} // Show the image URLs as a comma-separated string
                     onChange={handleImageChange}
                     className="border p-2 w-full"
                     placeholder="Image URLs (comma-separated)"
