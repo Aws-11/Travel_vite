@@ -1,73 +1,73 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from '../components/SideBar';
 import { useNavigate } from "react-router-dom";
+import axios from 'axios'; // Import axios
 
 const ManageBookings = () => {
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(false);
     const [input, setInput] = useState("");
-    const [currentPage, setCurrentPage] = useState(1); // Track the current page
-    const hotelsPerPage = 6; // Show only 6 bookings per page
+    const [currentPage, setCurrentPage] = useState(1);
+    const hotelsPerPage = 6;
 
     const navigate = useNavigate();
 
-    // Fetch bookings
     useEffect(() => {
         fetchBookings();
     }, []);
 
     const fetchBookings = async () => {
         try {
-            const response = await fetch("https://travel-vite-backend.onrender.com/showbook");
-            const data = await response.json();
-            setHotels(data);
+            const response = await axios.get("https://travel-vite-backend.onrender.com/showbook");
+            setHotels(response.data);
         } catch (error) {
             console.error("Error fetching bookings:", error);
         }
     };
 
-    // Delete booking
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this booking?")) return;
 
+        const token = sessionStorage.getItem('token'); // Get the token from sessionStorage
+        if (!token) {
+            console.error("No token found. User not authenticated.");
+            return;
+        }
+
         try {
             setLoading(true);
-            const response = await fetch(`https://travel-vite-backend.onrender.com/admin/delete-book/${id}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include"
+            await axios.delete(`https://travel-vite-backend.onrender.com/admin/delete-book/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Include the token in the headers
+                }
             });
 
-            if (response.ok) {
-                setHotels(hotels.filter(booking => booking._id !== id));
-                alert("Booking deleted successfully!");
-            } else {
-                const data = await response.json();
-                alert("Error deleting booking: " + data.error);
-            }
+            setHotels(hotels.filter(booking => booking._id !== id));
+            alert("Booking deleted successfully!");
         } catch (error) {
             console.error("Error deleting booking:", error);
+            if (error.response && error.response.data && error.response.data.error) {
+                alert("Error deleting booking: " + error.response.data.error);
+            } else {
+                alert("Error deleting booking. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    // Filter bookings by input search
-    const filteredHotels = hotels.filter((hotel) => 
+    const filteredHotels = hotels.filter((hotel) =>
         input.length === 0 || hotel.email?.toLowerCase().includes(input.toLowerCase())
     );
 
-    // Pagination: Calculate which bookings to show
     const indexOfLastHotel = currentPage * hotelsPerPage;
     const indexOfFirstHotel = indexOfLastHotel - hotelsPerPage;
     const currentHotels = filteredHotels.slice(indexOfFirstHotel, indexOfLastHotel);
 
-    // Pagination: Go to the previous page
     const prevPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
 
-    // Pagination: Go to the next page
     const nextPage = () => {
         if (currentPage < Math.ceil(filteredHotels.length / hotelsPerPage)) {
             setCurrentPage(currentPage + 1);
@@ -79,10 +79,10 @@ const ManageBookings = () => {
             <Sidebar />
             <div className="ml-64 p-6 flex-1">
                 <h1 className="text-3xl font-bold">Manage Bookings</h1>
-                <input 
+                <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Search by user email" 
+                    placeholder="Search by user email"
                     className="bg-gray-100 border border-gray-300 text-gray-900 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
 
@@ -120,7 +120,6 @@ const ManageBookings = () => {
                     </p>
                 )}
 
-                {/* Pagination Controls */}
                 <div className="flex justify-center mt-6">
                     <button
                         onClick={prevPage}

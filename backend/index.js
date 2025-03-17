@@ -18,6 +18,7 @@ app.use(bodyparser.json());
 app.use(cors({
     origin: "https://travel-vite-frontend.onrender.com",
     methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     secure: true
 }));
@@ -43,12 +44,14 @@ app.use(session({
 
 const adminAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization;
+    console.log("Authorization header:", authHeader);
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: "Unauthorized. Please log in." });
     }
 
     const token = authHeader.split(' ')[1];
+    console.log("Extracted token:", token);
 
     try {
         const decoded = jwt.verify(token, secret_key);
@@ -63,10 +66,10 @@ const adminAuth = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
+        console.error("error during adminAuth", error);
         res.status(401).json({ error: "Invalid token or session expired." });
     }
 };
-
 
 
 app.post('/login', async (req, res) => {
@@ -94,14 +97,14 @@ app.post('/login', async (req, res) => {
                     token
                 });
             } else {
-                res.status(401).send('Invalid login credentials');
+                res.status(401).json({ error: 'Invalid login credentials' });
             }
         } else {
-            res.status(401).send('User not found');
+            res.status(401).json({ error: 'User not found' });
         }
     } catch (error) {
         console.error("Error during login:", error);
-        res.status(500).send('Server Error');
+        res.status(500).json({ error: 'Server Error' });
     }
 });
 

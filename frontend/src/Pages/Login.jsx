@@ -27,39 +27,36 @@ const Login = () => {
   const handleLogin = async () => {
     const url = `https://travel-vite-backend.onrender.com/login`;
     try {
-      if (user.identifier && user.password) {
-        const response = await axios.post(url, user); // Removed { withCredentials: true }
+        const response = await axios.post(url, user);
 
         if (response.data && response.data.user && response.data.token) {
-          toast.success('Login successful!');
-          sessionStorage.setItem("user", JSON.stringify(response.data.user));
-          sessionStorage.setItem("token", response.data.token);
+            toast.success('Login successful!');
+            sessionStorage.setItem("user", JSON.stringify(response.data.user));
+            sessionStorage.setItem("token", response.data.token);
+            console.log("Token stored:", sessionStorage.getItem("token"));
 
-          if (response.data.user.role === 'admin') {
-            navigate('/admin-dashboard');
-          } else {
-            navigate('/');
-          }
+            if (response.data.user.role === 'admin') {
+                navigate('/admin-dashboard');
+            } else {
+                navigate('/');
+            }
 
-          setUser(initialUser);
-          setErrorMessage('');
-          window.location.reload();
+            setUser(initialUser);
+            setErrorMessage('');
+            window.location.reload();
         } else {
-          setErrorMessage('Invalid login credentials!');
+            setErrorMessage('Invalid login credentials!');
         }
-      } else {
-        setErrorMessage('Please fill in all fields.');
-      }
     } catch (error) {
-      if (error.response) {
-        setErrorMessage(error.response.data.error || 'Invalid login credentials!');
-      } else if (error.request) {
-        setErrorMessage('No response from server. Please try again!');
-      } else {
-        setErrorMessage('Login error. Please try again!');
-      }
+        if (error.response) {
+            setErrorMessage(error.response.data.error || 'Invalid login credentials!');
+        } else if (error.request) {
+            setErrorMessage('No response from server. Please try again!');
+        } else {
+            setErrorMessage('Login error. Please try again!');
+        }
     }
-  };
+};
 
   return (
     <>
