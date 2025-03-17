@@ -23,19 +23,29 @@ const Login = () => {
   const handleSignUpBtn = () => {
     navigate('/registration');
   };
-
   const handleLogin = async () => {
     const url = `https://travel-vite-backend.onrender.com/login`;
     try {
       if (user.identifier && user.password) {
         const { data } = await axios.post(url, user, { withCredentials: true });
 
-        if (data.user) {
+        if (data.user && data.token) {  // Check if both user and token are present
           toast.success('Login successful!');
-          sessionStorage.setItem("user", JSON.stringify(data.user));
+          sessionStorage.setItem("user", JSON.stringify(data.user));  // Store user data
+          sessionStorage.setItem("token", data.token);  // Store token
+
+          // Check if the user is an admin or a regular user
+          if (data.user.role === 'admin') {
+            // If admin, redirect to the admin dashboard
+            navigate('/admin-dashboard'); // Adjust the route for your admin dashboard
+          } else {
+            // If regular user, redirect to the homepage
+            navigate('/');
+          }
+
           setUser(initialUser);
           setErrorMessage('');
-          navigate('/');
+          window.location.reload();
         } else {
           setErrorMessage('Invalid login credentials!');
         }
@@ -52,6 +62,8 @@ const Login = () => {
       }
     }
   };
+
+
 
   return (
     <>

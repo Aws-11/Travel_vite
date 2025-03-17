@@ -2,14 +2,22 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Slider from "react-slider";
 
 const Hotels = () => {
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [location, setLocation] = useState("");
-    const [maxPrice, setMaxPrice] = useState(500);
-    const [photos, setPhotos] = useState({});
+
     const [error, setError] = useState(null);
+
+    const [minPrice, setMinPrice] = useState(50);
+    const [maxPrice, setMaxPrice] = useState(1000);
+    const [availableFrom, setAvailableFrom] = useState("");
+    const [availableTo, setAvailableTo] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const hotelsPerPage = 6;
+
 
     useEffect(() => {
         const fetchHotels = async () => {
@@ -51,12 +59,41 @@ const Hotels = () => {
         fetchPhotos();
     }, []);
 
+    // Filter hotels based on location, price, and availability dates
     const filteredHotels = hotels.filter((hotel) => {
+        const fromDate = new Date(availableFrom);
+        const toDate = new Date(availableTo);
+        const availableFromDate = new Date(hotel.AvailableFrom[0]);
+        const availableToDate = new Date(hotel.AvailableTo[0]);
+
         return (
             (location.length < 3 || hotel.City.toLowerCase().includes(location.toLowerCase())) &&
-            hotel.Price <= maxPrice
+            hotel.Price >= minPrice &&
+            hotel.Price <= maxPrice &&
+            (availableFrom ? availableFromDate <= fromDate : true) &&
+            (availableTo ? availableToDate >= toDate : true)
         );
     });
+
+    // Paginate hotels
+    const indexOfLastHotel = currentPage * hotelsPerPage;
+    const indexOfFirstHotel = indexOfLastHotel - hotelsPerPage;
+    const currentHotels = filteredHotels.slice(indexOfFirstHotel, indexOfLastHotel);
+
+    const handleChange = (values) => {
+        setMinPrice(values[0]);
+        setMaxPrice(values[1]);
+    };
+
+    const prevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const nextPage = () => {
+        if (currentPage < Math.ceil(filteredHotels.length / hotelsPerPage)) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
 
     return (
         <div>
@@ -68,7 +105,6 @@ const Hotels = () => {
 
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10">
-                    {/* Location Filter */}
                     <input
                         type="text"
                         placeholder="Search by City"
@@ -77,42 +113,89 @@ const Hotels = () => {
                         className="w-full md:w-1/3 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4 md:mb-0"
                     />
 
-                    {/* Price Filter */}
+                    {/* Date Filters */}
                     <div className="w-full md:w-1/3 flex flex-col items-center">
-                        <label
-                            htmlFor="price"
-                            className="text-sm font-medium mb-2"
-                        >
-                            Max Price: ${maxPrice}
+                        <label htmlFor="availableFrom" className="text-sm font-medium mb-2">
+                            Available From:
                         </label>
                         <input
-                            type="range"
-                            id="price"
-                            min="50"
-                            max="1000"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(Number(e.target.value))}
-                            className="w-full"
+                            type="date"
+                            value={availableFrom}
+                            onChange={(e) => setAvailableFrom(e.target.value)}
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
                         />
+
+                        <label htmlFor="availableTo" className="text-sm font-medium mb-2">
+                            Available To:
+                        </label>
+                        <input
+                            type="date"
+                            value={availableTo}
+                            onChange={(e) => setAvailableTo(e.target.value)}
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+                        />
+                    </div>
+
+                    {/* Price Filter */}
+                    <div className="w-full md:w-1/3 flex flex-col items-center">
+                        <label htmlFor="price" className="text-sm font-medium mb-2">
+                            Price Range: ${minPrice} - ${maxPrice}
+                        </label>
+                        <Slider
+                            min={50}
+                            max={1000}
+                            step={1}
+                            value={[minPrice, maxPrice]}
+                            onChange={handleChange}
+                            className="w-full"
+                            renderTrack={({ key, ...trackProps }, state) => (
+                                <div
+                                    key={key}
+                                    {...trackProps}
+                                    style={{
+                                        ...trackProps.style,
+                                        height: '6px',
+                                        borderRadius: '3px',
+                                        background: 'linear-gradient(to right, #1e3a8a, #0f172a)',
+                                    }}
+                                />
+                            )}
+                            renderThumb={({ key, ...thumbProps }, state) => (
+                                <div
+                                    key={key}
+                                    {...thumbProps}
+                                    style={{
+                                        ...thumbProps.style,
+                                        height: '20px',
+                                        width: '20px',
+                                        borderRadius: '50%',
+                                        background: '#1e40af',
+                                        boxShadow: '0 0 5px rgba(0, 0, 0, 0.3)',
+                                    }}
+                                />
+                            )}
+                        />
+                        <div className="flex justify-between w-full mt-2 pt-4">
+                            <span>Min Price: ${minPrice}</span>
+                            <span>Max Price: ${maxPrice}</span>
+                        </div>
                     </div>
                 </div>
 
                 {/* Hotel List */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {loading ? (
-                        <p>Loading...</p>
-                    ) : filteredHotels.length > 0 ? (
-                        filteredHotels.map((hotel) => (
+
+                    {currentHotels.length > 0 ? (
+                        currentHotels.map((hotel) => (
                             <div
                                 key={hotel._id}
-                                className="border rounded-lg shadow-md overflow-hidden bg-white">
-                                    
-                                         <img
-                                            src={photos[hotel._id] ? photos[hotel._id] : 'fallback_image_url'} // Fallback if no photo exists
-                                            alt={`${hotel.Listname} fallback photo`}
-                                            className="h-48 w-full object-cover"
-                                        />
-
+                                className="border rounded-lg shadow-md overflow-hidden bg-white"
+                            >
+                                <img
+                                    src={hotel.images[0]}
+                                    alt={`${hotel.Listname} photo`}
+                                    className="h-48 w-full object-cover"
+                                />
 
                                 <div className="p-4">
                                     <h2 className="text-xl font-semibold mb-2 bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
@@ -147,6 +230,16 @@ const Hotels = () => {
                             No hotels found matching the criteria.
                         </p>
                     )}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex justify-center mt-6">
+                    <button onClick={prevPage} className="px-4 py-2 mx-2 text-white bg-orange-500 rounded-md hover:bg-orange-600">
+                        Previous
+                    </button>
+                    <button onClick={nextPage} className="px-4 py-2 mx-2 text-white bg-orange-500 rounded-md hover:bg-orange-600">
+                        Next
+                    </button>
                 </div>
             </div>
             <Footer />

@@ -13,14 +13,10 @@ userdb.on('error', (err) => console.error('MongoDB connection error (Users):', e
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, maxlength: 40, minlength: 3, match: /^[a-zA-Z0-9_]+$/ },
     email: { type: String, required: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-    password: { type: String, required: true, minlength: 8 }
+    password: { type: String, required: true, minlength: 8 },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' } // Add role field with default 'user'
 });
 
-userSchema.pre('save', async function (next) {
-    const hashedPassword = await bcrypt.hash(this.password, 10);
-    this.password = hashedPassword;
-    next();
-});
 
 const User = userdb.model('User', userSchema);
 
@@ -35,7 +31,10 @@ const listingsSchema = new mongoose.Schema({
     City: { type: String, required: true },
     Price: { type: Number, required: true },
     Rooms: { type: Number, required: true },
-    Description: { type: String, required: true }
+    Description: { type: String, required: true },
+    AvailableFrom: { type: [Date], required: true },
+    AvailableTo: { type: [Date], required: true },
+    images: [{ type: String, required: false }]
 });
 
 const Listing = listingdb.model('Listings', listingsSchema);

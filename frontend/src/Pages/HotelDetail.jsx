@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import BookingConfirmation from "../components/bookingPay.jsx";
+
+import BookingConfirmation from "../components/bookingPay";
 
 
 const HotelDetail = () => {
@@ -19,6 +20,7 @@ const HotelDetail = () => {
         guests_children: 0,
         booked_rooms: 1
     });
+
     
 
 const [clicked, setClicked] = useState(false);
@@ -31,6 +33,7 @@ const [Adults, setAdults] = useState(0);
 const [Children, setChildren] = useState(0);
     const [photos, setPhotos] = useState({}); 
 
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
 
     useEffect(() => {
@@ -53,28 +56,6 @@ const [Children, setChildren] = useState(0);
         fetchHotelDetails();
     }, [id]);
 
-    useEffect(() => {
-        const fetchPhotos = async () => {
-            try {
-                const response = await fetch(`https://travel-vite-backend.onrender.com/photos/${id}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setPhotos((prevPhotos) => ({
-                        ...prevPhotos,
-                        [id]: data.length > 0 ? data[0].URL : "", // Use first photo URL
-                    }));
-                } else {
-                    console.error("Failed to fetch photos for hotel", id);
-                }
-            } catch (error) {
-                console.error("Error fetching photos:", error);
-            }
-        };
-
-        if (id) {
-            fetchPhotos();
-        }
-    }, [id]);
 
     const login = () => {
         navigate("/login");
@@ -144,12 +125,10 @@ const [Children, setChildren] = useState(0);
     }
 
 
-
     const handleClick = () => {
-        if (!clicked) {
-          setClicked(true);     
-        }else(setClicked(false));
-      };
+        setClicked(!clicked);
+    };
+
 
 const maxVal = 20;
 const maxValChildren = 10;
@@ -224,19 +203,56 @@ case "adults":
 
 
 
+    const prevImage = () => {
+        setCurrentImageIndex((prevIndex) =>
+            prevIndex === 0 ? hotel.images.length - 1 : prevIndex - 1
+        );
+    };
+
+    const nextImage = () => {
+        setCurrentImageIndex((prevIndex) =>
+            prevIndex === hotel.images.length - 1 ? 0 : prevIndex + 1
+        );
+    };
+
+
     return (
         <>    
             <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
             <div className="min-h-screen bg-neutral-900 text-white p-20">
                 <div className="container mx-auto py-10 px-6 lg:px-20">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                       
-                        <div>
-                            <img
-                                src={photos[hotel._id] ? photos[hotel._id] : 'fallback_image_url'}
-                                alt={`${hotel.Listname} fallback photo`}
-                                className="rounded-lg shadow-lg w-full h-96 object-cover"
-                            />
+
+                        {/* Hotel Image Section (Carousel) */}
+                        <div className="relative w-full">
+                            {hotel.images && hotel.images.length > 0 ? (
+                                <div className="relative">
+                                    <img
+                                        src={hotel.images[currentImageIndex]}
+                                        alt={`Hotel Image ${currentImageIndex + 1}`}
+                                        className="w-full h-full object-cover rounded-lg shadow-lg"
+                                    />
+                                    {/* Left Button */}
+                                    <button
+                                        onClick={prevImage}
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 text-white p-8 rounded-full transition-all hover:bg-opacity-100"
+                                    >
+                                        <i className="fas fa-chevron-left text-xl"></i>
+                                    </button>
+                                    {/* Right Button */}
+                                    <button
+                                        onClick={nextImage}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 text-white p-8 rounded-full transition-all hover:bg-opacity-100"
+                                    >
+                                        <i className="fas fa-chevron-right text-xl"></i>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="w-full h-96 flex items-center justify-center bg-gray-700 text-white rounded-lg">
+                                    No Image Available
+                                </div>
+                            )}
+
                         </div>
 
                        
@@ -326,7 +342,9 @@ case "adults":
                                             Confirm Booking
                                         </button>
 
+
                                     </div>                 
+
 
                                 </div>
                             ) : (
@@ -350,9 +368,9 @@ case "adults":
                 {bookingBool && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
                         <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
-                            <h2 className="text-3xl font-bold text-white mb-6 text-center">
-                                Continue with payment in the Profile Tab
-                            </h2>
+
+                            <h2 className="text-3xl font-bold text-white mb-6 text-center">Continue with payment in the Profile Tab</h2>
+
                             <div className="flex justify-center">
                                 <button
                                     onClick={() => navigate("/profile")}
