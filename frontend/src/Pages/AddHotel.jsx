@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Sidebar from '../components/SideBar';
+import axios from 'axios'; // Import axios
 
 const AddHotel = () => {
     const [form, setForm] = useState({
@@ -11,7 +12,7 @@ const AddHotel = () => {
         Description: "",
         AvailableFrom: "",
         AvailableTo: "",
-        images: [] // Array to store image URLs
+        images: []
     });
 
     const handleChange = (e) => {
@@ -35,17 +36,21 @@ const AddHotel = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const token = sessionStorage.getItem('token'); // Get the token from sessionStorage
+        if (!token) {
+            console.error("No token found. User not authenticated.");
+            return;
+        }
+
         try {
-            const response = await fetch("https://travel-vite-backend.onrender.com/admin/add-hotel", {
-                method: "POST",
+            const response = await axios.post("https://travel-vite-backend.onrender.com/admin/add-hotel", form, {
                 headers: {
                     "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(form),
+                    "Authorization": `Bearer ${token}` // Include the token in the headers
+                }
             });
 
-            if (response.ok) {
+            if (response.status === 200) {
                 alert("Hotel added successfully!");
                 setForm({
                     Listname: "",
@@ -63,6 +68,12 @@ const AddHotel = () => {
             }
         } catch (error) {
             console.error("Error adding hotel:", error);
+            if(error.response && error.response.data){
+                alert(error.response.data.error || "Failed to add hotel");
+            } else {
+                alert("Failed to add hotel");
+            }
+
         }
     };
 
@@ -72,6 +83,7 @@ const AddHotel = () => {
             <div className="ml-64 p-6 flex-1">
                 <h1 className="text-3xl font-bold">Add New Hotel</h1>
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                    {/* Input fields... */}
                     <input
                         type="text"
                         name="Listname"
@@ -120,7 +132,6 @@ const AddHotel = () => {
                         className="border p-2 w-full"
                     ></textarea>
 
-                    {/* Date Range Inputs */}
                     <div className="flex space-x-4">
                         <div className="w-full">
                             <label htmlFor="AvailableFrom" className="block text-sm font-medium mb-1">Available From</label>
@@ -144,7 +155,6 @@ const AddHotel = () => {
                         </div>
                     </div>
 
-                    {/* Dynamic Image URL Inputs */}
                     <div>
                         <label className="block text-sm font-medium mb-1">Image URLs</label>
                         {form.images.map((image, index) => (

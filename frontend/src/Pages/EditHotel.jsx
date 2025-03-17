@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from 'axios'; // Import axios
 
 const EditHotel = () => {
     const { id } = useParams();
@@ -13,19 +14,19 @@ const EditHotel = () => {
         Description: "",
         AvailableFrom: "",
         AvailableTo: "",
-        images: [] 
+        images: []
     });
 
     useEffect(() => {
         const fetchHotel = async () => {
             try {
-                const response = await fetch(`https://travel-vite-backend.onrender.com/showlist/${id}`);
-                const data = await response.json();
+                const response = await axios.get(`https://travel-vite-backend.onrender.com/showlist/${id}`);
+                const data = response.data;
                 setHotel({
                     ...data,
-                    Images: data.images || [], 
-                    AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0], // Format the date
-                    AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0] // Format the date
+                    images: data.images || [],
+                    AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0],
+                    AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0]
                 });
             } catch (error) {
                 console.error("Error fetching hotel:", error);
@@ -44,27 +45,36 @@ const EditHotel = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(hotel)
+        const token = sessionStorage.getItem('token'); // Get the token from sessionStorage
+        if (!token) {
+            console.error("No token found. User not authenticated.");
+            return;
+        }
+
         try {
-            const response = await fetch(`https://travel-vite-backend.onrender.com/admin/edit-hotel/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(hotel),
-                credentials: "include"
+            const response = await axios.put(`https://travel-vite-backend.onrender.com/admin/edit-hotel/${id}`, hotel, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Include the token in the headers
+                }
             });
 
-            if (response.ok) {
+            if (response.status === 200) {
                 alert("Hotel updated successfully!");
-                // navigate("/admin/manage-hotels");
+                navigate("/admin/manage-hotels");
             } else {
-                const data = await response.json();
-                alert("Error updating hotel: " + data.error);
+                alert("Error updating hotel");
             }
         } catch (error) {
             console.error("Error updating hotel:", error);
+            if(error.response && error.response.data){
+                alert(error.response.data.error || "Error updating hotel");
+            } else {
+                alert("Error updating hotel");
+            }
+
         }
     };
-
 
     return (
         <div className="max-w-lg mx-auto mt-10 p-6 border rounded-md shadow-md">
@@ -124,7 +134,6 @@ const EditHotel = () => {
                     required
                 />
 
-                {/* Available From Date */}
                 <input
                     type="date"
                     name="AvailableFrom"
@@ -134,7 +143,6 @@ const EditHotel = () => {
                     required
                 />
 
-                {/* Available To Date */}
                 <input
                     type="date"
                     name="AvailableTo"
@@ -144,12 +152,11 @@ const EditHotel = () => {
                     required
                 />
 
-                {/* Images input */}
                 <label className="block text-sm font-semibold">Images (comma-separated URLs):</label>
                 <input
                     type="text"
                     name="Images"
-                    value={hotel.images ? hotel.images.join(",") : ""} // Add conditional check
+                    value={hotel.images ? hotel.images.join(",") : ""}
                     onChange={handleImageChange}
                     className="border p-2 w-full"
                     placeholder="Image URLs (comma-separated)"

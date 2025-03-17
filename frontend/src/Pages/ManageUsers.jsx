@@ -1,70 +1,71 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from '../components/SideBar';
+import axios from 'axios'; // Import axios
 
 const ManageUsers = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [input, setInput] = useState("");
-    const [currentPage, setCurrentPage] = useState(1); // Track the current page
-    const usersPerPage = 6; // Show only 6 users per page
+    const [currentPage, setCurrentPage] = useState(1);
+    const usersPerPage = 6;
 
-    // Fetch users
     useEffect(() => {
         fetchUsers();
     }, []);
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch("https://travel-vite-backend.onrender.com/users");
-            const data = await response.json();
-            setUsers(data);
+            const response = await axios.get("https://travel-vite-backend.onrender.com/users");
+            setUsers(response.data);
         } catch (error) {
             console.error("Error fetching users:", error);
         }
     };
 
-    // Delete user
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this user?")) return;
 
+        const token = sessionStorage.getItem('token'); // Get the token from sessionStorage
+        if (!token) {
+            console.error("No token found. User not authenticated.");
+            return;
+        }
+
         try {
             setLoading(true);
-            const response = await fetch(`https://travel-vite-backend.onrender.com/admin/userdel/${id}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include"
+            await axios.delete(`https://travel-vite-backend.onrender.com/admin/userdel/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Include the token in the headers
+                }
             });
 
-            if (response.ok) {
-                setUsers(users.filter(user => user._id !== id));
-                alert("User deleted successfully!");
-            } else {
-                const data = await response.json();
-                alert("Error deleting user: " + data.error);
-            }
+            setUsers(users.filter(user => user._id !== id));
+            alert("User deleted successfully!");
         } catch (error) {
             console.error("Error deleting user:", error);
+            if(error.response && error.response.data){
+                alert(error.response.data.error || "Error deleting user");
+            } else {
+                alert("Error deleting user");
+            }
+
         } finally {
             setLoading(false);
         }
     };
 
-    // Filter users by input search
-    const filteredUsers = users.filter((user) => 
+    const filteredUsers = users.filter((user) =>
         input.length === 0 || user.email?.toLowerCase().includes(input.toLowerCase())
     );
 
-    // Pagination: Calculate which users to show
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
     const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-    // Pagination: Go to the previous page
     const prevPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
 
-    // Pagination: Go to the next page
     const nextPage = () => {
         if (currentPage < Math.ceil(filteredUsers.length / usersPerPage)) {
             setCurrentPage(currentPage + 1);
@@ -76,10 +77,10 @@ const ManageUsers = () => {
             <Sidebar />
             <div className="ml-64 p-6 flex-1">
                 <h1 className="text-3xl font-bold">Manage Users</h1>
-                <input 
+                <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Search by user email" 
+                    placeholder="Search by user email"
                     className="bg-gray-100 border border-gray-300 text-gray-900 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
 
@@ -109,7 +110,6 @@ const ManageUsers = () => {
                     </p>
                 )}
 
-                {/* Pagination Controls */}
                 <div className="flex justify-center mt-6">
                     <button
                         onClick={prevPage}
