@@ -17,6 +17,8 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
     origin: "https://travel-vite-frontend.onrender.com",
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
     credentials: true,
     secure: true
 }));
