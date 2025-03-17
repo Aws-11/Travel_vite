@@ -509,9 +509,6 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
     try {
         const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, images } = req.body;
 
-        if (!Array.isArray(images) || images.length === 0) {
-            return res.status(400).json({ error: 'At least one image URL is required' });
-        }
 
         const newHotel = new Listing({
             Listname,
