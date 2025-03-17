@@ -23,23 +23,21 @@ const Login = () => {
   const handleSignUpBtn = () => {
     navigate('/registration');
   };
+
   const handleLogin = async () => {
     const url = `https://travel-vite-backend.onrender.com/login`;
     try {
       if (user.identifier && user.password) {
-        const { data } = await axios.post(url, user, { withCredentials: true });
+        const response = await axios.post(url, user); // Removed { withCredentials: true }
 
-        if (data.user && data.token) {  // Check if both user and token are present
+        if (response.data && response.data.user && response.data.token) {
           toast.success('Login successful!');
-          sessionStorage.setItem("user", JSON.stringify(data.user));  // Store user data
-          sessionStorage.setItem("token", data.token);  // Store token
+          sessionStorage.setItem("user", JSON.stringify(response.data.user));
+          sessionStorage.setItem("token", response.data.token);
 
-          // Check if the user is an admin or a regular user
-          if (data.user.role === 'admin') {
-            // If admin, redirect to the admin dashboard
-            navigate('/admin-dashboard'); // Adjust the route for your admin dashboard
+          if (response.data.user.role === 'admin') {
+            navigate('/admin-dashboard');
           } else {
-            // If regular user, redirect to the homepage
             navigate('/');
           }
 
@@ -63,8 +61,6 @@ const Login = () => {
     }
   };
 
-
-
   return (
     <>
       <Navbar />
@@ -72,24 +68,22 @@ const Login = () => {
         <div className="w-full max-w-md bg-neutral-800 p-8 rounded-lg shadow-lg">
           <h1 className="text-3xl font-bold text-center mb-6">Login</h1>
           <div className="space-y-6">
-            {/* Email Input */}
             <div>
               <label className="block text-sm font-medium mb-2" htmlFor="email">
                 Email
               </label>
               <input
                 id="email"
-                type="email"
+                type="text" // Use text instead of email to accept username or email
                 name="identifier"
                 value={user.identifier}
                 onChange={handleChange}
-                placeholder="Enter your email"
-                autoComplete="email"
+                placeholder="Enter your username or email"
+                autoComplete="username" // or "email"
                 className="w-full px-4 py-2 rounded-lg bg-neutral-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
 
-            {/* Password Input */}
             <div>
               <label className="block text-sm font-medium mb-2" htmlFor="password">
                 Password
@@ -106,12 +100,10 @@ const Login = () => {
               />
             </div>
 
-            {/* Error Message */}
             {errorMessage && (
               <p className="text-red-500 text-sm text-center">{errorMessage}</p>
             )}
 
-            {/* Login Button */}
             <button
               onClick={handleLogin}
               className="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors"
@@ -119,21 +111,18 @@ const Login = () => {
               Login
             </button>
 
-            {/* Separator */}
             <div className="flex items-center justify-center space-x-2 text-gray-400 mt-4">
               <div className="h-px w-1/4 bg-gray-600"></div>
               <span>Or</span>
               <div className="h-px w-1/4 bg-gray-600"></div>
             </div>
 
-            {/* Sign Up Button */}
             <button
               onClick={handleSignUpBtn}
               className="w-full bg-gradient-to-r from-orange-500 to-orange-800 text-white py-2 px-4 rounded-lg hover:from-orange-600 hover:to-orange-900 transition-colors"
             >
               Create an Account
             </button>
-
           </div>
         </div>
       </div>

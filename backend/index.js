@@ -42,16 +42,16 @@ app.use(session({
 
 
 const adminAuth = async (req, res, next) => {
-    const token = req.session.token;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: "Unauthorized. Please log in." });
     }
 
+    const token = authHeader.split(' ')[1];
+
     try {
-
         const decoded = jwt.verify(token, secret_key);
-
         console.log('Decoded JWT:', decoded);
 
         const user = await User.findById(decoded.id);
@@ -66,7 +66,6 @@ const adminAuth = async (req, res, next) => {
         res.status(401).json({ error: "Invalid token or session expired." });
     }
 };
-
 
 
 
@@ -89,21 +88,10 @@ app.post('/login', async (req, res) => {
                     { expiresIn: '1h' }
                 );
 
-                req.session.token = token;
-                console.log('Session Token Set:', req.session.token);
-
-                // Explicitly save the session
-                req.session.save((err) => {
-                    if (err) {
-                        console.error("Error saving session:", err);
-                        return res.status(500).send('Server Error');
-                    }
-
-                    res.json({
-                        message: "User is logged in",
-                        user: { username: user.username, email: user.email, role: user.role },
-                        token
-                    });
+                res.json({
+                    message: "User is logged in",
+                    user: { username: user.username, email: user.email, role: user.role },
+                    token
                 });
             } else {
                 res.status(401).send('Invalid login credentials');
