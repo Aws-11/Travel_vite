@@ -72,7 +72,6 @@ const adminAuth = async (req, res, next) => {
 
 app.post('/login', async (req, res) => {
     try {
-        // Look for the user based on the identifier (username or email)
         const user = await User.findOne({
             $or: [
                 { username: req.body.identifier },
@@ -80,31 +79,31 @@ app.post('/login', async (req, res) => {
             ]
         });
 
-
         if (user) {
-
-
-            // bcrypt.compare will check if the entered password matches the stored hash
             const isMatch = await bcrypt.compare(req.body.password, user.password);
 
-
             if (isMatch) {
-                // If passwords match, proceed to generate a JWT token
-
-
                 const token = jwt.sign(
                     { id: user._id, username: user.username, email: user.email, role: user.role },
                     secret_key,
                     { expiresIn: '1h' }
                 );
 
-                req.session.token = token; // Store token in the session
+                req.session.token = token;
                 console.log('Session Token Set:', req.session.token);
 
-                res.json({
-                    message: "User is logged in",
-                    user: { username: user.username, email: user.email, role: user.role },
-                    token
+                // Explicitly save the session
+                req.session.save((err) => {
+                    if (err) {
+                        console.error("Error saving session:", err);
+                        return res.status(500).send('Server Error');
+                    }
+
+                    res.json({
+                        message: "User is logged in",
+                        user: { username: user.username, email: user.email, role: user.role },
+                        token
+                    });
                 });
             } else {
                 res.status(401).send('Invalid login credentials');
