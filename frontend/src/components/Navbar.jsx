@@ -17,7 +17,7 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         try {
-          await axios.get('http://localhost:3000/logout', { withCredentials: true }); // Call backend to destroy session
+          await axios.get('https://travel-vite-backend.onrender.com/logout', { withCredentials: true }); // Call backend to destroy session
           sessionStorage.removeItem("user"); // Remove user data
           sessionStorage.removeItem("token"); // Remove token
          setIsLoggedIn(false) // Redirect to login page

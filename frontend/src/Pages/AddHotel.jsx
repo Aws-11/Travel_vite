@@ -36,7 +36,7 @@ const AddHotel = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch("http://localhost:3000/admin/add-hotel", {
+            const response = await fetch("https://travel-vite-backend.onrender.comhttp://localhost:/admin/add-hotel", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

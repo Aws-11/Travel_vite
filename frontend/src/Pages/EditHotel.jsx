@@ -19,7 +19,7 @@ const EditHotel = () => {
     useEffect(() => {
         const fetchHotel = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/showlist/${id}`);
+                const response = await fetch(`https://travel-vite-backend.onrender.com/showlist/${id}`);
                 const data = await response.json();
                 setHotel({
                     ...data,
@@ -46,7 +46,7 @@ const EditHotel = () => {
         e.preventDefault();
         console.log(hotel)
         try {
-            const response = await fetch(`http://localhost:3000/admin/edit-hotel/${id}`, {
+            const response = await fetch(`https://travel-vite-backend.onrender.com/admin/edit-hotel/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(hotel),

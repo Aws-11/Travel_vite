@@ -15,7 +15,7 @@ const ManageHotels = () => {
 
     const fetchHotels = async () => {
         try {
-            const response = await fetch("http://localhost:3000/showlist");
+            const response = await fetch("https://travel-vite-backend.onrender.com/showlist");
             const data = await response.json();
             setHotels(data);
         } catch (error) {
@@ -29,7 +29,7 @@ const ManageHotels = () => {
 
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:3000/admin/delete-hotel/${id}`, {
+            const response = await fetch(`https://travel-vite-backend.onrender.com/admin/delete-hotel/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"

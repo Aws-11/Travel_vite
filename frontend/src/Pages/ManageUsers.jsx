@@ -15,7 +15,7 @@ const ManageUsers = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch("http://localhost:3000/users");
+            const response = await fetch("https://travel-vite-backend.onrender.com/users");
             const data = await response.json();
             setUsers(data);
         } catch (error) {
@@ -29,7 +29,7 @@ const ManageUsers = () => {
 
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:3000/admin/userdel/${id}`, {
+            const response = await fetch(`https://travel-vite-backend.onrender.com/admin/userdel/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"
