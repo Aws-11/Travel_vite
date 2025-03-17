@@ -510,9 +510,7 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
         console.log("Backend received request body:", req.body);
         const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, images } = req.body;
 
-        if (!req.body.images || !Array.isArray(images)) {
-            return res.status(400).json({ error: 'images must be an array' });
-        }
+    
         for(let image of images){
             if(typeof image !== 'string'){
                 return res.status(400).json({error:"image url must be a string"})
