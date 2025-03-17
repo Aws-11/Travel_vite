@@ -12,8 +12,8 @@ const Hotels = () => {
     const [maxPrice, setMaxPrice] = useState(1000);
     const [availableFrom, setAvailableFrom] = useState("");
     const [availableTo, setAvailableTo] = useState("");
-    const [currentPage, setCurrentPage] = useState(1); // Track current page
-    const hotelsPerPage = 6; // Show only 6 hotels per page
+    const [currentPage, setCurrentPage] = useState(1);
+    const hotelsPerPage = 6;
 
     useEffect(() => {
         const fetchHotels = async () => {
@@ -62,7 +62,7 @@ const Hotels = () => {
         );
     });
 
-    // Paginate hotels based on currentPage and hotelsPerPage
+    // Paginate hotels
     const indexOfLastHotel = currentPage * hotelsPerPage;
     const indexOfFirstHotel = indexOfLastHotel - hotelsPerPage;
     const currentHotels = filteredHotels.slice(indexOfFirstHotel, indexOfLastHotel);
@@ -72,12 +72,10 @@ const Hotels = () => {
         setMaxPrice(values[1]);
     };
 
-    // Pagination: Go to the previous page
     const prevPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
 
-    // Pagination: Go to the next page
     const nextPage = () => {
         if (currentPage < Math.ceil(filteredHotels.length / hotelsPerPage)) {
             setCurrentPage(currentPage + 1);
@@ -94,7 +92,6 @@ const Hotels = () => {
 
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10">
-                    {/* Location Filter */}
                     <input
                         type="text"
                         placeholder="Search by City"
@@ -103,14 +100,9 @@ const Hotels = () => {
                         className="w-full md:w-1/3 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4 md:mb-0"
                     />
 
-
-
-                        {/* Date Filters */}
-                        <div className="w-full md:w-1/3 flex flex-col items-center">
-                        <label
-                            htmlFor="availableFrom"
-                            className="text-sm font-medium mb-2"
-                        >
+                    {/* Date Filters */}
+                    <div className="w-full md:w-1/3 flex flex-col items-center">
+                        <label htmlFor="availableFrom" className="text-sm font-medium mb-2">
                             Available From:
                         </label>
                         <input
@@ -120,10 +112,7 @@ const Hotels = () => {
                             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
                         />
 
-                        <label
-                            htmlFor="availableTo"
-                            className="text-sm font-medium mb-2"
-                        >
+                        <label htmlFor="availableTo" className="text-sm font-medium mb-2">
                             Available To:
                         </label>
                         <input
@@ -134,17 +123,9 @@ const Hotels = () => {
                         />
                     </div>
 
-
-
-
-
-
                     {/* Price Filter */}
                     <div className="w-full md:w-1/3 flex flex-col items-center">
-                        <label
-                            htmlFor="price"
-                            className="text-sm font-medium mb-2"
-                        >
+                        <label htmlFor="price" className="text-sm font-medium mb-2">
                             Price Range: ${minPrice} - ${maxPrice}
                         </label>
                         <Slider
@@ -154,22 +135,24 @@ const Hotels = () => {
                             value={[minPrice, maxPrice]}
                             onChange={handleChange}
                             className="w-full"
-                            renderTrack={(props, state) => (
+                            renderTrack={({ key, ...trackProps }, state) => (
                                 <div
-                                    {...props}
+                                    key={key}
+                                    {...trackProps}
                                     style={{
-                                        ...props.style,
+                                        ...trackProps.style,
                                         height: '6px',
                                         borderRadius: '3px',
                                         background: 'linear-gradient(to right, #1e3a8a, #0f172a)',
                                     }}
                                 />
                             )}
-                            renderThumb={(props, state) => (
+                            renderThumb={({ key, ...thumbProps }, state) => (
                                 <div
-                                    {...props}
+                                    key={key}
+                                    {...thumbProps}
                                     style={{
-                                        ...props.style,
+                                        ...thumbProps.style,
                                         height: '20px',
                                         width: '20px',
                                         borderRadius: '50%',
@@ -184,8 +167,6 @@ const Hotels = () => {
                             <span>Max Price: ${maxPrice}</span>
                         </div>
                     </div>
-
-                   
                 </div>
 
                 {/* Hotel List */}
@@ -197,7 +178,7 @@ const Hotels = () => {
                                 className="border rounded-lg shadow-md overflow-hidden bg-white"
                             >
                                 <img
-                                    src={`/images/${hotel._id}.jpg`}
+                                    src={hotel.images[0]}
                                     alt={`${hotel.Listname} photo`}
                                     className="h-48 w-full object-cover"
                                 />
@@ -238,16 +219,10 @@ const Hotels = () => {
 
                 {/* Pagination Controls */}
                 <div className="flex justify-center mt-6">
-                    <button
-                        onClick={prevPage}
-                        className="px-4 py-2 mx-2 text-white bg-orange-500 rounded-md hover:bg-orange-600"
-                    >
+                    <button onClick={prevPage} className="px-4 py-2 mx-2 text-white bg-orange-500 rounded-md hover:bg-orange-600">
                         Previous
                     </button>
-                    <button
-                        onClick={nextPage}
-                        className="px-4 py-2 mx-2 text-white bg-orange-500 rounded-md hover:bg-orange-600"
-                    >
+                    <button onClick={nextPage} className="px-4 py-2 mx-2 text-white bg-orange-500 rounded-md hover:bg-orange-600">
                         Next
                     </button>
                 </div>

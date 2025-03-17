@@ -11,10 +11,26 @@ const AddHotel = () => {
         Description: "",
         AvailableFrom: "",
         AvailableTo: "",
+        images: [] // Array to store image URLs
     });
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleImageChange = (index, value) => {
+        const updatedImages = [...form.images];
+        updatedImages[index] = value;
+        setForm({ ...form, images: updatedImages });
+    };
+
+    const addImageField = () => {
+        setForm({ ...form, images: [...form.images, ""] });
+    };
+
+    const removeImageField = (index) => {
+        const updatedImages = form.images.filter((_, i) => i !== index);
+        setForm({ ...form, images: updatedImages });
     };
 
     const handleSubmit = async (e) => {
@@ -40,6 +56,7 @@ const AddHotel = () => {
                     Description: "",
                     AvailableFrom: "",
                     AvailableTo: "",
+                    images: []
                 });
             } else {
                 alert("Failed to add hotel");
@@ -125,6 +142,36 @@ const AddHotel = () => {
                                 className="border p-2 w-full"
                             />
                         </div>
+                    </div>
+
+                    {/* Dynamic Image URL Inputs */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Image URLs</label>
+                        {form.images.map((image, index) => (
+                            <div key={index} className="flex items-center space-x-2 mb-2">
+                                <input
+                                    type="text"
+                                    value={image}
+                                    placeholder={`Image URL ${index + 1}`}
+                                    onChange={(e) => handleImageChange(index, e.target.value)}
+                                    className="border p-2 w-full"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removeImageField(index)}
+                                    className="bg-red-500 text-white py-1 px-2 rounded"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={addImageField}
+                            className="mt-2 bg-blue-500 text-white py-2 px-4 rounded"
+                        >
+                            Add Image URL
+                        </button>
                     </div>
 
                     <button

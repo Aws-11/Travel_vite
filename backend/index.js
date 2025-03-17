@@ -11,6 +11,8 @@ const secret_key = "secret"
 const app = express();
 require("dotenv").config();
 
+
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 app.use(bodyparser.json());
 app.use(cors({
@@ -28,9 +30,12 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         maxAge: 1000 * 60 * 60,
-        secure: false
+        secure: false,
+        httpOnly: true,
+        sameSite: 'strict'
     }
-}))
+}));
+
 
 
 
@@ -43,14 +48,18 @@ const adminAuth = async (req, res, next) => {
     }
 
     try {
+
         const decoded = jwt.verify(token, secret_key);
+
+        console.log('Decoded JWT:', decoded);
+
         const user = await User.findById(decoded.id);
 
         if (!user || user.role !== 'admin') {
             return res.status(403).json({ error: "Access denied. Admins only." });
         }
 
-        req.user = user; // Attach user info to request
+        req.user = user;
         next();
     } catch (error) {
         res.status(401).json({ error: "Invalid token or session expired." });
@@ -59,33 +68,32 @@ const adminAuth = async (req, res, next) => {
 
 
 
+
 app.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({
             $or: [
                 { username: req.body.identifier },
-                { email: req.body.identifier },
+                { email: req.body.identifier }
             ]
         });
 
         if (user && await bcrypt.compare(req.body.password, user.password)) {
-
             const token = jwt.sign(
-                { id: user._id, username: user.username, email: user.email, role: user.role }, // ✅ Include role in token
+                { id: user._id, username: user.username, email: user.email, role: user.role },
                 secret_key,
                 { expiresIn: '1h' }
             );
 
+            // Store the token in the session
             req.session.token = token;
 
-
-
             res.json({
-                message: "User is logged in",
+                message: `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} logged in successfully`,
                 user: {
                     username: user.username,
                     email: user.email,
-                    role: user.role // ✅ Include role in response
+                    role: user.role
                 },
                 token
             });
@@ -97,6 +105,8 @@ app.post('/login', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
 
 
 
@@ -268,7 +278,7 @@ app.post('/fetchbasedonid', async (req, res) => {
 });
 
 
-app.delete('/admin/userdel/:id', adminAuth,async (req, res) => {
+app.delete('/admin/userdel/:id', adminAuth, async (req, res) => {
     const id = req.params.id
     try {
         const delUser = await User.deleteOne({ _id: id });
@@ -320,8 +330,8 @@ app.get('/hotels/:id', async (req, res) => {
 });
 
 app.get('/showlist', async (req, res) => {
-    
-    
+
+
 
     try {
         const users = await Listing.find();
@@ -337,9 +347,9 @@ app.get('/showlist', async (req, res) => {
 
 
 
-app.get('/showbook',async (req, res) => {
+app.get('/showbook', async (req, res) => {
 
-try {
+    try {
         const books = await Booking.find();
 
         res.status(200).json(books)
@@ -472,37 +482,13 @@ app.put('/user/update', async (req, res) => {
 });
 
 
-app.post('/bookings_by_email', async (req, res) => {
-    const { email } = req.body; // Destructure email from the request body
-
-    if (!email) {
-        return res.status(400).json({ error: "Email is required to fetch bookings." });
-    }
-
-    try {
-        // Query the Booking model for bookings matching the email
-        const bookings = await Booking.find({ email });
-
-        // If no bookings are found, return an appropriate message
-        if (!bookings.length) {
-
-        }
-
-        res.status(200).json(bookings); // Respond with the found bookings
-    } catch (error) {
-        console.error("Error fetching bookings by email:", error);
-        res.status(500).json({ error: "An error occurred while fetching bookings." });
-    }
-});
-
-
-
-
-
-
 app.post('/admin/add-hotel', adminAuth, async (req, res) => {
     try {
-        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo } = req.body;
+        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, images } = req.body;
+
+        if (!Array.isArray(images) || images.length === 0) {
+            return res.status(400).json({ error: 'At least one image URL is required' });
+        }
 
         const newHotel = new Listing({
             Listname,
@@ -511,8 +497,9 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
             Price,
             Rooms,
             Description,
-            AvailableFrom: new Date(AvailableFrom),  
-            AvailableTo: new Date(AvailableTo),     
+            AvailableFrom: new Date(AvailableFrom),
+            AvailableTo: new Date(AvailableTo),
+            images,  // Store image URLs as an array
         });
 
         await newHotel.save();
@@ -523,9 +510,13 @@ app.post('/admin/add-hotel', adminAuth, async (req, res) => {
 });
 
 
+
+
 app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
     try {
-        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo } = req.body;
+        const { Listname, Country, City, Price, Rooms, Description, AvailableFrom, AvailableTo, Images } = req.body;
+
+        // Find and update the hotel with the new details, including the Images array (if provided)
         const updatedHotel = await Listing.findByIdAndUpdate(
             req.params.id,
             {
@@ -536,7 +527,8 @@ app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
                 Rooms,
                 Description,
                 AvailableFrom: new Date(AvailableFrom),
-                AvailableTo: new Date(AvailableTo)
+                AvailableTo: new Date(AvailableTo),
+                images: Images && Images.length ? Images : undefined // Only update if Images is provided
             },
             { new: true } // To return the updated hotel object
         );
@@ -553,11 +545,13 @@ app.put('/admin/edit-hotel/:id', adminAuth, async (req, res) => {
 
 
 
+
+
 app.get('/showlist/:id', async (req, res) => {
 
-const id = req.params.id
+    const id = req.params.id
     try {
-        const data = await Listing.findOne({ _id: id});
+        const data = await Listing.findOne({ _id: id });
 
         res.status(200).json(data)
     } catch (err) {
@@ -601,7 +595,7 @@ app.delete('/admin/delete-book/:id', adminAuth, async (req, res) => {
 
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
-        res.clearCookie("connect.sid"); 
+        res.clearCookie("connect.sid");
         res.send({ message: "Successfully logged out" });
     });
 });

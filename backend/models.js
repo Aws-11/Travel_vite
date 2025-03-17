@@ -38,9 +38,9 @@ const listingsSchema = new mongoose.Schema({
     Price: { type: Number, required: true },
     Rooms: { type: Number, required: true },
     Description: { type: String, required: true },
-    AvailableFrom: {type: [Date], required: true},
-    AvailableTo: {type: [Date], required: true},
-    
+    AvailableFrom: { type: [Date], required: true },
+    AvailableTo: { type: [Date], required: true },
+    images: [{ type: String, required: false }]
 });
 
 const Listing = listingdb.model('Listings', listingsSchema);

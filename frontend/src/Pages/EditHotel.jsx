@@ -12,7 +12,8 @@ const EditHotel = () => {
         Rooms: "",
         Description: "",
         AvailableFrom: "",
-        AvailableTo: ""
+        AvailableTo: "",
+        Images: [] // Ensure Images is always an array
     });
 
     useEffect(() => {
@@ -22,8 +23,9 @@ const EditHotel = () => {
                 const data = await response.json();
                 setHotel({
                     ...data,
-                    AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0], // Format the date to match input type="date"
-                    AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0] // Format the date to match input type="date"
+                    Images: data.Images || [], // Ensure Images is always an array
+                    AvailableFrom: new Date(data.AvailableFrom).toISOString().split("T")[0], // Format the date
+                    AvailableTo: new Date(data.AvailableTo).toISOString().split("T")[0] // Format the date
                 });
             } catch (error) {
                 console.error("Error fetching hotel:", error);
@@ -34,6 +36,10 @@ const EditHotel = () => {
 
     const handleChange = (e) => {
         setHotel({ ...hotel, [e.target.name]: e.target.value });
+    };
+
+    const handleImageChange = (e) => {
+        setHotel({ ...hotel, Images: e.target.value.split(",").map((url) => url.trim()) }); // Update the Images array
     };
 
     const handleSubmit = async (e) => {
@@ -62,13 +68,60 @@ const EditHotel = () => {
         <div className="max-w-lg mx-auto mt-10 p-6 border rounded-md shadow-md">
             <h1 className="text-2xl font-bold mb-4">Edit Hotel</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <input type="text" name="Listname" value={hotel.Listname} onChange={handleChange} className="border p-2 w-full" placeholder="Hotel Name" required />
-                <input type="text" name="Country" value={hotel.Country} onChange={handleChange} className="border p-2 w-full" placeholder="Country" required />
-                <input type="text" name="City" value={hotel.City} onChange={handleChange} className="border p-2 w-full" placeholder="City" required />
-                <input type="number" name="Price" value={hotel.Price} onChange={handleChange} className="border p-2 w-full" placeholder="Price" required />
-                <input type="number" name="Rooms" value={hotel.Rooms} onChange={handleChange} className="border p-2 w-full" placeholder="Rooms" required />
-                <textarea name="Description" value={hotel.Description} onChange={handleChange} className="border p-2 w-full" placeholder="Description" required />
-                
+                <input
+                    type="text"
+                    name="Listname"
+                    value={hotel.Listname}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    placeholder="Hotel Name"
+                    required
+                />
+                <input
+                    type="text"
+                    name="Country"
+                    value={hotel.Country}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    placeholder="Country"
+                    required
+                />
+                <input
+                    type="text"
+                    name="City"
+                    value={hotel.City}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    placeholder="City"
+                    required
+                />
+                <input
+                    type="number"
+                    name="Price"
+                    value={hotel.Price}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    placeholder="Price"
+                    required
+                />
+                <input
+                    type="number"
+                    name="Rooms"
+                    value={hotel.Rooms}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    placeholder="Rooms"
+                    required
+                />
+                <textarea
+                    name="Description"
+                    value={hotel.Description}
+                    onChange={handleChange}
+                    className="border p-2 w-full"
+                    placeholder="Description"
+                    required
+                />
+
                 {/* Available From Date */}
                 <input
                     type="date"
@@ -89,13 +142,24 @@ const EditHotel = () => {
                     required
                 />
 
-                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-md">
+                {/* Images input */}
+                <label className="block text-sm font-semibold">Images (comma-separated URLs):</label>
+                <input
+                    type="text"
+                    name="Images"
+                    value={hotel.Images.join(", ")} // Show the image URLs as a comma-separated string
+                    onChange={handleImageChange}
+                    className="border p-2 w-full"
+                    placeholder="Image URLs (comma-separated)"
+                />
+
+                <button
+                    type="submit"
+                    className="bg-green-500 text-white px-4 py-2 rounded-md"
+                >
                     Update Hotel
                 </button>
-
-             
-            </form>  
-           
+            </form>
         </div>
     );
 };

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import BookingConfirmation from "../components/bookingPay";
+
 const HotelDetail = () => {
     const { id } = useParams(); // Get the hotel _id from the URL
     const navigate = useNavigate();
@@ -15,8 +16,10 @@ const HotelDetail = () => {
         checkOutDate: "",
         guests: 1,
     });
-const [clicked, setClicked] = useState(false);
-const [bookingBool, setBookingBool] = useState(false);
+    const [clicked, setClicked] = useState(false);
+    const [bookingBool, setBookingBool] = useState(false);
+
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
         // Fetch the hotel details by ID
@@ -39,8 +42,8 @@ const [bookingBool, setBookingBool] = useState(false);
     }, [id]);
 
     const login = () => {
-        navigate("/login")
-    }
+        navigate("/login");
+    };
 
     const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
@@ -72,10 +75,7 @@ const [bookingBool, setBookingBool] = useState(false);
             });
 
             if (response.ok) {
-              
                 setBookingBool(true);
-                
-               
             } else {
                 const errorData = await response.json();
                 alert(`Booking failed: ${errorData.error || "Please try again."}`);
@@ -98,15 +98,21 @@ const [bookingBool, setBookingBool] = useState(false);
         );
     }
 
-
-
-
     const handleClick = () => {
-        if (!clicked) {
-          setClicked(true);     
-        }else(setClicked(false));
-      };
+        setClicked(!clicked);
+    };
 
+    const prevImage = () => {
+        setCurrentImageIndex((prevIndex) =>
+            prevIndex === 0 ? hotel.images.length - 1 : prevIndex - 1
+        );
+    };
+
+    const nextImage = () => {
+        setCurrentImageIndex((prevIndex) =>
+            prevIndex === hotel.images.length - 1 ? 0 : prevIndex + 1
+        );
+    };
 
     return (
         <>
@@ -114,13 +120,35 @@ const [bookingBool, setBookingBool] = useState(false);
             <div className="min-h-screen bg-neutral-900 text-white p-20">
                 <div className="container mx-auto py-10 px-6 lg:px-20">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Hotel Image Section */}
-                        <div>
-                            <img
-                                src={`/images/${id}.jpg`}
-                                alt={`Hotel ${hotel.Listname}`}
-                                className="rounded-lg shadow-lg w-full h-96 object-cover"
-                            />
+                        {/* Hotel Image Section (Carousel) */}
+                        <div className="relative w-full">
+                            {hotel.images && hotel.images.length > 0 ? (
+                                <div className="relative">
+                                    <img
+                                        src={hotel.images[currentImageIndex]}
+                                        alt={`Hotel Image ${currentImageIndex + 1}`}
+                                        className="w-full h-full object-cover rounded-lg shadow-lg"
+                                    />
+                                    {/* Left Button */}
+                                    <button
+                                        onClick={prevImage}
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full transition-all hover:bg-opacity-75"
+                                    >
+                                        <i className="fas fa-chevron-left text-xl"></i>
+                                    </button>
+                                    {/* Right Button */}
+                                    <button
+                                        onClick={nextImage}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full transition-all hover:bg-opacity-75"
+                                    >
+                                        <i className="fas fa-chevron-right text-xl"></i>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="w-full h-96 flex items-center justify-center bg-gray-700 text-white rounded-lg">
+                                    No Image Available
+                                </div>
+                            )}
                         </div>
 
                         {/* Hotel Details Section */}
@@ -195,13 +223,9 @@ const [bookingBool, setBookingBool] = useState(false);
                                             onClick={() => { handleBooking(); handleClick(); }}
                                             className="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
                                         >
-                                            Confirm Booking 
+                                            Confirm Booking
                                         </button>
                                     </div>
-                                   
-                                   
-
-                                    
                                 </div>
                             ) : (
                                 <div className="mt-12 bg-neutral-800 p-6 rounded-lg shadow-lg text-center">
@@ -221,20 +245,21 @@ const [bookingBool, setBookingBool] = useState(false);
                     </div>
                 </div>
                 <Footer />
-                {bookingBool &&<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
-    <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">Continue with payment in the Profile Tab</h2>
-        <div className="flex justify-center">
-            <button
-                onClick={() => navigate("/profile")}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
-            >
-                Proceed to the Profile Tab
-            </button>
-        </div>
-    </div>
-</div>
-}
+                {bookingBool && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center backdrop-blur-md">
+                        <div className="bg-neutral-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+                            <h2 className="text-3xl font-bold text-white mb-6 text-center">Continue with payment in the Profile Tab</h2>
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => navigate("/profile")}
+                                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+                                >
+                                    Proceed to the Profile Tab
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );
