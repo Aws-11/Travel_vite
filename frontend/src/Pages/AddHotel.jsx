@@ -53,6 +53,7 @@ const AddHotel = () => {
 
             if (response.status === 201) {
                 alert("Hotel added successfully!");
+                window.location.reload();
                 setForm({
                     Listname: "",
                     Country: "",
