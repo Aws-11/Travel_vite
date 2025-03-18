@@ -132,14 +132,14 @@ const HotelDetail = () => {
                                     {/* Left Button */}
                                     <button
                                         onClick={prevImage}
-                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full transition-all hover:bg-opacity-75"
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 text-white p-3 rounded-full transition-all hover:bg-opacity-75"
                                     >
                                         <i className="fas fa-chevron-left text-xl"></i>
                                     </button>
                                     {/* Right Button */}
                                     <button
                                         onClick={nextImage}
-                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full transition-all hover:bg-opacity-75"
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 text-white p-3 rounded-full transition-all hover:bg-opacity-75"
                                     >
                                         <i className="fas fa-chevron-right text-xl"></i>
                                     </button>
